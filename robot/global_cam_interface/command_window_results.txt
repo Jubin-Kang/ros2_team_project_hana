@@ -1,0 +1,32 @@
+Loading estimation data from: data/raw_output.csv
+Loading estimation data from: data/clahe_output.csv
+Loading estimation data from: data/bilateral_output.csv
+Loading estimation data from: data/clahe_bilateral_output.csv
+
+--- Statistics (Mean and Standard Deviation) ---
+Dataset: Raw
+  X Mean: -0.031987, X Std Dev: 0.000479
+  Y Mean: 0.648299, Y Std Dev: 0.004391
+  Yaw Mean: 91.114969, Yaw Std Dev: 0.699063
+
+Dataset: CLAHE
+  X Mean: -0.031384, X Std Dev: 0.001044
+  Y Mean: 0.637972, Y Std Dev: 0.008955
+  Yaw Mean: 91.084877, Yaw Std Dev: 0.747185
+
+Dataset: Bilateral
+  X Mean: -0.031432, X Std Dev: 0.000177
+  Y Mean: 0.648871, Y Std Dev: 0.003709
+  Yaw Mean: 91.014849, Yaw Std Dev: 0.735256
+
+Dataset: CLAHE+Bilateral
+  X Mean: -0.031617, X Std Dev: 0.000042
+  Y Mean: 0.643600, Y Std Dev: 0.000877
+  Yaw Mean: 90.535654, Yaw Std Dev: 0.162989
+
+--- Highest Precision (Lowest Standard Deviation) ---  X-axis: CLAHE+Bilateral (Std Dev: 0.000042)
+  Y-axis: CLAHE+Bilateral (Std Dev: 0.000877)
+  Yaw: CLAHE+Bilateral (Std Dev: 0.162989)
+
+
+Plotting complete.

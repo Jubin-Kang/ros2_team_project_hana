@@ -1,0 +1,127 @@
+name: hana_bridge
+from_domain: 129
+to_domain: 13
+
+topics:
+  # Robot 1 communication
+  robot_1/user_cmd:
+    type: std_msgs/msg/String
+    from_domain: 129
+    to_domain: 13
+    
+  robot_1/status:
+    type: std_msgs/msg/String
+    from_domain: 13
+    to_domain: 129
+    
+  robot_1/confirm_request:
+    type: std_msgs/msg/String
+    from_domain: 129
+    to_domain: 13
+    
+  robot_1/confirm_response:
+    type: std_msgs/msg/String
+    from_domain: 13
+    to_domain: 129
+
+  # Robot 2 communication
+  robot_2/user_cmd:
+    type: std_msgs/msg/String
+    from_domain: 129
+    to_domain: 19
+    
+  robot_2/status:
+    type: std_msgs/msg/String
+    from_domain: 19
+    to_domain: 129
+    
+  robot_2/confirm_request:
+    type: std_msgs/msg/String
+    from_domain: 129
+    to_domain: 19
+    
+  robot_2/confirm_response:
+    type: std_msgs/msg/String
+    from_domain: 19
+    to_domain: 129
+
+  # Robot Arm communication (Robot Arm is on Domain 14)
+  # Robot 1 sends item_id to robot arm
+  robot_arm/user_cmd:
+    type: std_msgs/msg/Int32
+    from_domain: 13
+    to_domain: 14
+    
+  # Robot 2 sends item_id to robot arm
+  robot_arm/user_cmd:
+    type: std_msgs/msg/Int32
+    from_domain: 19
+    to_domain: 14
+    
+  # Robot arm sends status to Robot 1
+  robot_arm/status:
+    type: std_msgs/msg/String
+    from_domain: 14
+    to_domain: 13
+    
+  # Robot arm sends status to Robot 2
+  robot_arm/status:
+    type: std_msgs/msg/String
+    from_domain: 14
+    to_domain: 19
+    
+  # Robot arm sends status to Central (Fleet Manager monitoring)
+  robot_arm/status:
+    type: std_msgs/msg/String
+    from_domain: 14
+    to_domain: 129
+
+#  # 임시
+#   /DP_08/odom_aruco:
+#     type: nav_msgs/msg/Odometry
+#     from_domain: 129
+#     to_domain: 13
+
+ # 임시
+  /DP_08/odom_aruco:
+    type: nav_msgs/msg/Odometry
+    from_domain: 129
+    to_domain: 13
+
+    # remap: 
+ # 임시
+  /DP_09/odom_aruco:
+    type: nav_msgs/msg/Odometry
+    from_domain: 129
+    to_domain: 19
+
+ # 임시
+  /amcl_pose:
+    type: geometry_msgs/msg/PoseWithCovarianceStamped
+    from_domain: 19
+    to_domain: 13
+    remap: /DP_09/amcl_pose 
+    
+  # /DP_09/amcl_pose :
+  #   type: geometry_msgs/msg/PoseWithCovarianceStamped
+  #   from_domain: 19
+  #   to_domain: 13
+  #   remap: /DP_09/amcl_pose 
+
+  /amcl_pose:
+    type: geometry_msgs/msg/PoseWithCovarianceStamped
+    from_domain: 13
+    to_domain: 19
+    remap: /DP_08/amcl_pose 
+
+  /pinky_battery_present:
+    type: std_msgs/msg/Float32
+    from_domain: 13
+    to_domain: 129
+    remap: /DP_03/battery_present
+
+  /pinky_battery_present:
+    type: std_msgs/msg/Float32
+    from_domain: 19
+    to_domain: 129
+    remap: /DP_09/battery_present

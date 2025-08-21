@@ -1,0 +1,141 @@
+# ekf_filter_node:
+#   ros__parameters:
+#     frequency: 30.0
+#     sensor_timeout: 0.15
+#     two_d_mode: true
+#     publish_tf: true
+
+#     map_frame: map
+#     odom_frame: odom
+#     base_link_frame: base_footprint
+#     world_frame: odom   # 로컬 오dom 추정
+
+#     predict_to_current_time: false  # 과도한 예측 방지
+#     print_diagnostics: true
+
+#     # 2. ArUco Pose (Measurement)
+#     # -----------------------------
+#     odom0: /odom_aruco
+#     odom0_config: [true,  true,  false, # x, y 사용
+#                     false, false, true,  # yaw 사용
+#                     false, false, false, # 속도 안씀
+#                     false, false, false, # 각속도 안씀
+#                     false, false, false] # 가속도 안씀
+#     odom0_differential: false           # 절대 위치/자세
+#     odom0_relative: false
+#     odom0_queue_size: 5
+
+#     # ---------- IMU: 각속도만 사용 (yaw 적분). 가속도는 끈다 ----------
+#     imu0: /imu
+#     imu0_config: [false, false, false,   # 위치(x, y, z) 안씀
+#                   false, false, false,    # roll, pitch, yaw (자세) 사용
+#                   false, false, false,   # 선속도 안씀
+#                   false,  false,  true,    # 각속도 사용
+#                   false, false, false]   # 가속도 안씀 (필요하면 true 가능)
+#     imu0_differential: false             # orientation은 절대값
+#     imu0_relative: true                  # 초기 자세 기준 상대값
+#     imu0_queue_size: 10
+
+#     # imu0_remove_gravitational_acceleration: true  # orientation 없으면 효과 없음
+
+#     process_noise_covariance: [0.05, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.05, 0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.06, 0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.03, 0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.03, 0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.0,    0.06, 0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.025, 0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.025, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.04, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.01, 0.0,    0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.01, 0.0,    0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.02, 0.0,    0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.01, 0.0,    0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.01, 0.0,
+#                                    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.015]
+
+ekf_filter_node:
+  ros__parameters:
+    frequency: 30.0
+    sensor_timeout: 0.15
+    two_d_mode: true
+    publish_tf: true
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_footprint
+    world_frame: odom   # 로컬 오dom 추정
+
+    predict_to_current_time: false  # 과도한 예측 방지
+    print_diagnostics: true
+
+    # 2. ArUco Pose (Measurement)
+    # -----------------------------
+    odom0: /odom_aruco
+    odom0_config: [true,  true,  false, # x, y 사용
+                    false, false, true,  # yaw 사용
+                    false, false, false, # 속도 안씀
+                    false, false, false, # 각속도 안씀
+                    false, false, false] # 가속도 안씀
+    odom0_differential: false           # 절대 위치/자세
+    odom0_relative: false
+    odom0_queue_size: 5
+
+    # # 2. ArUco Pose (Measurement)
+    # # -----------------------------
+    # odom1: /odom_rf2o
+    # odom1_config: [false,  false,  false, # x, y 사용
+    #                 false, false, false,  # yaw 사용
+    #                 true, false, false, # 속도 안씀
+    #                 false, false, false, # 각속도 안씀
+    #                 false, false, false] # 가속도 안씀
+    # odom1_differential: true           # 절대 위치/자세
+    # odom1_relative: false
+    # odom1_queue_size: 5
+
+    # ---------- IMU: 각속도만 사용 (yaw 적분). 가속도는 끈다 ----------
+    imu0: /imu
+    imu0_config: [false, false, false,   # 위치(x, y, z) 안씀
+                  false, false, false,    # roll, pitch, yaw (자세) 사용
+                  false, false, false,   # 선속도 안씀
+                  false,  false,  true,    # 각속도 사용
+                  # true, true, false]   # 가속도 안씀 (필요하면 true 가능)
+                  false, false, false]   # 가속도 안씀 (필요하면 true 가능)
+
+    imu0_differential: false             # orientation은 절대값
+    imu0_relative: true                  # 초기 자세 기준 상대값
+    imu0_queue_size: 10
+
+    # imu0_remove_gravitational_acceleration: true  # orientation 없으면 효과 없음
+
+    process_noise_covariance:  [0.05, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.05, 0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.06, 0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.03, 0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.03, 0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.06, 0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.025, 0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.025, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.04, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.01, 0.0,    0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.01, 0.0,    0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.001, 0.0,    0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    1.0, 0.0,    0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    1.0, 0.0,
+                                   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.015]
+
+    # initial_estimate_covariance: [1e-9, 0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+    #                               0,    1e-9, 0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+    #                               0,    0,    1e-9, 0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+    #                               0,    0,    0,    1e-9, 0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+    #                               0,    0,    0,    0,    1e-9, 0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+    #                               0,    0,    0,    0,    0,    1e-9, 0,    0,    0,    0,     0,     0,     0,    0,    0,
+    #                               0,    0,    0,    0,    0,    0,    1e-9, 0,    0,    0,     0,     0,     0,    0,    0,
+    #                               0,    0,    0,    0,    0,    0,    0,    1e-9, 0,    0,     0,     0,     0,    0,    0,
+    #                               0,    0,    0,    0,    0,    0,    0,    0,    1e-9, 0,     0,     0,     0,    0,    0,
+    #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    1e-9,  0,     0,     0,    0,    0,
+    #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     1e-9,  0,     0,    0,    0,
+    #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     1e-9,  0,    0,    0,
+    #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     1e-9, 0,    0,
+    #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    1e-9, 0,
+    #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    1e-9]

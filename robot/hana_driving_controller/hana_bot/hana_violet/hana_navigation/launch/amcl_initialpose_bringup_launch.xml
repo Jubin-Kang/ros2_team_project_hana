@@ -1,0 +1,72 @@
+<?xml version='1.0'?>
+<launch>
+    <set_env name="RCUTILS_LOGGING_BUFFERED_STREAM" value="1"/>
+
+    <arg name="namespace" default=""/>
+    <arg name="map" default="$(find-pkg-share hana_navigation)/map/map.yaml"/>
+    <arg name="use_sim_time" default="False"/>
+    <arg name="params_file" default="$(find-pkg-share hana_navigation)/params/amcl_params.yaml"/>
+    <arg name="params_cartographer" default="no_imu_nav.lua"/>
+    <arg name="autostart" default="True"/>
+    <arg name="container_name" default="nav2_container"/>
+    <arg name="use_composition" default="True"/>
+    <arg name="use_respawn" default="False"/>
+    <arg name="log_level" default="info"/>
+    <arg name="lifecycle_nodes_local" default="['map_server', 'amcl']"/>
+    <arg name="lifecycle_nodes_nav" default="['controller_server',
+                       'smoother_server',
+                       'planner_server',
+                       'behavior_server',
+                       'bt_navigator',
+                       'waypoint_follower',
+                       'velocity_smoother']"/>
+
+    <group>
+        <push-ros-namespace namespace="$(var namespace)"/>
+        <node pkg="rclcpp_components" exec="component_container_isolated" name='$(var container_name)' output="screen" args="--ros-args --log-level $(var log_level)">
+            <param from="$(var params_file)"/>
+            <param name='map' value="$(var map)"/>
+            <param name='autostart' value="$(var autostart)"/>
+            <param name='use_sim_time' value="$(var use_sim_time)"/>
+            
+            <remap from="/tf" to="tf"/>
+            <remap from="/tf_static" to="tf_static"/>
+        </node>
+
+        <!-- <node pkg="hana_navigation" exec="initialpose.py" name='initialpose' output="screen">
+        </node> -->
+
+        <!-- <include file="$(find-pkg-share hana_cartographer)/launch/cartographer.launch.xml">
+            <arg name="configuration_basename" value="$(var params_cartographer)"/>
+            <arg name="use_nav2" value="True"/>
+        </include> -->
+
+        <!-- <include file="$(find-pkg-share rf2o_laser_odometry)/launch/rf2o_laser_odometry.launch.py">
+            <arg name="use_sim_time" value="$(var use_sim_time)"/>
+            <arg name="autostart" value="$(var autostart)"/>
+            <arg name="container_name" value="$(var container_name)"/>
+        </include> -->
+
+        <include file="$(find-pkg-share hana_navigation)/launch/amcl_localization_launch.xml">
+            <arg name="params_file" value="$(var params_file)"/>
+            <arg name="map" value="$(var map)"/>
+            <arg name="use_sim_time" value="$(var use_sim_time)"/>
+            <arg name="autostart" value="$(var autostart)"/>
+            <arg name="use_composition" value="$(var use_composition)"/>
+            <arg name="use_respawn" value="$(var use_respawn)"/>
+            <arg name="container_name" value="$(var container_name)"/>
+            <arg name='lifecycle_nodes' value="$(var lifecycle_nodes_local)"/>
+        </include>
+
+        <include file="$(find-pkg-share hana_navigation)/launch/navigation_launch.xml">
+            <arg name="params_file" value="$(var params_file)"/>
+            <arg name="use_sim_time" value="$(var use_sim_time)"/>
+            <arg name="autostart" value="$(var autostart)"/>
+            <arg name="use_composition" value="$(var use_composition)"/>
+            <arg name="use_respawn" value="$(var use_respawn)"/>
+            <arg name="container_name" value="$(var container_name)"/>
+            <arg name='lifecycle_nodes' value="$(var lifecycle_nodes_nav)"/>
+        </include>
+    </group>
+
+</launch>

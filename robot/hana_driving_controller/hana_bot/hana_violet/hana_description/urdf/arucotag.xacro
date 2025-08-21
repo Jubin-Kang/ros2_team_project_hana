@@ -1,0 +1,46 @@
+<!-- robot.xacro -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- 기존 로봇 정의 -->
+  
+  <!-- 아루코 태그 링크 추가 -->
+  <link name="aruco_tag_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.001"/>  <!-- 얇은 박스 -->
+      </geometry>
+      <material name="aruco_material">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  
+  <!-- 로봇에 고정 조인트로 연결 -->
+  <joint name="aruco_tag_joint" type="fixed">
+    <parent link="base_link"/>  <!-- 또는 원하는 부모 링크 -->
+    <child link="aruco_tag_link"/>
+    <origin xyz="0 0 0.5" rpy="0 0 0"/>  <!-- 위치 조정 -->
+  </joint>
+  
+  <!-- Gazebo 태그 추가 -->
+  <gazebo reference="aruco_tag_link">
+    <material>Gazebo/White</material>
+    <visual>
+      <material>
+        <script>
+          <uri>model://arucotag/materials/scripts/gazebo.material</uri>
+          <name>Gazebo/White</name>
+        </script>
+        <ambient>1 1 1 1</ambient>
+        <diffuse>1 1 1 1</diffuse>
+        <specular>0 0 0 1</specular>
+      </material>
+    </visual>
+  </gazebo>
+</robot>

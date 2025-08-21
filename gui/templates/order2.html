@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>요양원 간편 주문</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/static/order2.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <a class="navbar-brand" href="#">
+            <i class="fas fa-hand-holding-heart"></i> 요양원 주문
+        </a>
+    </nav>
+
+    <div class="container mt-4 mb-5">
+        <h1 class="text-center mb-4 app-title">간편 주문 시스템</h1>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> 주문 정보 입력</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="form-group">
+                        <label for="residentName"><i class="fas fa-user"></i> 입주자 이름:</label>
+                        <input type="text" class="form-control" id="residentName" placeholder="예: 김철수">
+                    </div>
+                    <div class="form-group">
+                        <label for="orderItem"><i class="fas fa-box"></i> 주문 항목:</label>
+                        <select class="form-control" id="orderItem">
+                            <option>식사 (죽)</option>
+                            <option>식사 (일반식)</option>
+                            <option>간식 (과일)</option>
+                            <option>간식 (음료)</option>
+                            <option>의약품</option>
+                            <option>기타</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity"><i class="fas fa-sort-numeric-up"></i> 수량:</label>
+                        <input type="number" class="form-control" id="quantity" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="notes"><i class="fas fa-comment-dots"></i> 특이사항:</label>
+                        <textarea class="form-control" id="notes" rows="3" placeholder="예: 알레르기, 복용 시간, 추가 요청 사항"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-success btn-block btn-lg" id="submitOrder2">
+                        <i class="fas fa-paper-plane"></i> 주문 제출
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-history"></i> 최근 주문 내역</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>김영희</strong> - 식사 (죽) <br>
+                            <small class="text-muted">1개 (오전 8시)</small>
+                        </div>
+                        <span class="badge badge-primary badge-pill">완료</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>박지성</strong> - 의약품 <br>
+                            <small class="text-muted">1개 (오후 2시)</small>
+                        </div>
+                        <span class="badge badge-warning badge-pill">대기</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>최미영</strong> - 간식 (과일) <br>
+                            <small class="text-muted">1개 (오후 4시)</small>
+                        </div>
+                        <span class="badge badge-success badge-pill">처리중</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-auto py-3 bg-light shadow-sm">
+        <div class="container text-center">
+            <span class="text-muted">&copy; 2025 요양원 간편 주문 시스템. All rights reserved.</span>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="/static/order2.js"></script>
+</body>
+</html>

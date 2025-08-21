@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-bg: #1a1a1a;
+            --secondary-bg: #2d2d2d;
+            --accent-bg: #3a3a3a;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --border-color: #444444;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --status-online: #00ff00;
+            --status-busy: #ffaa00;
+            --status-offline: #ff0000;
+            --status-idle: #00aaff;
+        }
+
+        * {
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--secondary-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 60px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .system-title {
+            font-weight: 700;
+            font-size: 18px;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .system-subtitle {
+            margin-left: 15px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .system-time {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--status-online);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Main Content */
+        .content {
+            margin-top: 60px;
+            padding: 20px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        /* Statistics Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'Roboto Mono', monospace;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-success { color: var(--success-color); }
+        .stat-warning { color: var(--warning-color); }
+        .stat-danger { color: var(--danger-color); }
+        .stat-info { color: var(--info-color); }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr 400px;
+            gap: 20px;
+            height: calc(100vh - 160px);
+        }
+
+        .panel {
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background-color: var(--accent-bg);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-badge {
+            background-color: var(--primary-bg);
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .panel-content {
+            padding: 0;
+            height: calc(100% - 45px);
+            overflow-y: auto;
+        }
+
+        /* Robot Status Panel */
+        .robot-list {
+            padding: 0;
+        }
+
+        .robot-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .robot-item:last-child {
+            border-bottom: none;
+        }
+
+        .robot-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .robot-status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .robot-status-indicator.online { background-color: var(--status-online); }
+        .robot-status-indicator.busy { background-color: var(--status-busy); }
+        .robot-status-indicator.offline { background-color: var(--status-offline); }
+        .robot-status-indicator.idle { background-color: var(--status-idle); }
+
+        .robot-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .robot-details {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .robot-status-text {
+            font-size: 11px;
+            font-family: 'Roboto Mono', monospace;
+            text-align: right;
+        }
+
+        /* Task Table */
+        .task-table {
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .task-table th {
+            background-color: var(--accent-bg);
+            color: var(--text-secondary);
+            padding: 10px 12px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .task-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .task-table tbody tr:hover {
+            background-color: var(--accent-bg);
+        }
+
+        .task-id {
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 600;
+            color: var(--info-color);
+        }
+
+        .task-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .task-status.pending { background-color: #495057; color: #ffffff; }
+        .task-status.assigned { background-color: #007bff; color: #ffffff; }
+        .task-status.active { background-color: #fd7e14; color: #ffffff; }
+        .task-status.completed { background-color: #28a745; color: #ffffff; }
+        .task-status.failed { background-color: #dc3545; color: #ffffff; }
+
+        .task-time {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Activity Log */
+        .activity-log {
+            padding: 0;
+        }
+
+        .activity-item {
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 11px;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-time {
+            color: var(--text-muted);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 10px;
+        }
+
+        .activity-message {
+            margin-top: 2px;
+            color: var(--text-secondary);
+        }
+
+        .activity-type-error { border-left: 3px solid var(--danger-color); }
+        .activity-type-warning { border-left: 3px solid var(--warning-color); }
+        .activity-type-info { border-left: 3px solid var(--info-color); }
+        .activity-type-success { border-left: 3px solid var(--success-color); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--primary-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Loading States */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--text-muted);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error States */
+        .error-state {
+            padding: 20px;
+            text-align: center;
+            color: var(--danger-color);
+            font-size: 12px;
+        }
+
+        .no-data {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        /* Alert System */
+        .alert-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            background-color: var(--danger-color);
+            color: white;
+            padding: 8px 20px;
+            font-size: 12px;
+            z-index: 99;
+            display: none;
+        }
+
+        .alert-bar.show {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .dashboard-grid {
+                grid-template-columns: 300px 1fr 350px;
+            }
+            
+            .stats-bar {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: 300px 1fr 400px;
+            }
+            
+            .stats-bar {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Alert Bar -->
+    <div class="alert-bar" id="alert-bar">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span id="alert-message"></span>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <h1 class="system-title">FLEET MANAGEMENT SYSTEM</h1>
+            <div class="system-subtitle">v2.1.0 | HANA Robotics</div>
+        </div>
+        <div class="header-right">
+            <div class="connection-status">
+                <div class="status-dot"></div>
+                <span>CONNECTED</span>
+            </div>
+            <div class="system-time" id="system-time">00:00:00</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Statistics Bar -->
+        <div class="stats-bar">
+            <div class="stat-box">
+                <div class="stat-value stat-info" id="stat-total-tasks">0</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value stat-success" id="stat-completed-tasks">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value stat-warning" id="stat-pending-tasks">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value stat-danger" id="stat-active-tasks">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value stat-success" id="stat-success-rate">0%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value stat-info" id="stat-uptime">00:00:00</div>
+                <div class="stat-label">System Uptime</div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Robot Status Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="bi bi-robot"></i>
+                        ROBOT STATUS
+                    </div>
+                    <div class="panel-badge" id="robot-count">0 Units</div>
+                </div>
+                <div class="panel-content">
+                    <div class="robot-list" id="robot-list">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Management Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="bi bi-list-task"></i>
+                        TASK MANAGEMENT
+                    </div>
+                    <div class="panel-badge" id="task-count">0 Tasks</div>
+                </div>
+                <div class="panel-content">
+                    <table class="task-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>TYPE</th>
+                                <th>STATUS</th>
+                                <th>REQUESTER</th>
+                                <th>ROBOT</th>
+                                <th>CREATED</th>
+                                <th>ELAPSED</th>
+                            </tr>
+                        </thead>
+                        <tbody id="task-table-body">
+                            <tr>
+                                <td colspan="7" class="loading-spinner">
+                                    <div class="spinner"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Activity Log Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="bi bi-journal-text"></i>
+                        SYSTEM LOG
+                    </div>
+                    <div class="panel-badge" id="log-count">0 Events</div>
+                </div>
+                <div class="panel-content">
+                    <div class="activity-log" id="activity-log">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fleet_dashboard.js"></script>
+</body>
+</html>

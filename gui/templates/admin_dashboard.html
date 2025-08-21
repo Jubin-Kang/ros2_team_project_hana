@@ -1,0 +1,4247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HANA Admin Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #1a1a1a;
+            --accent-bg: #2a2a2a;
+            --card-bg: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --success-color: #00ff88;
+            --warning-color: #ffaa00;
+            --danger-color: #ff4444;
+            --info-color: #00aaff;
+            --chart-primary: #00aaff;
+            --chart-secondary: #ff6b6b;
+            --chart-success: #51cf66;
+            --chart-warning: #ffd43b;
+        }
+
+        * {
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #1a1a2e 50%, #16213e 100%);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+            min-height: 100vh;
+            display: flex; /* Flexbox for sidebar and content */
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: var(--secondary-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h2 {
+            font-weight: 700;
+            font-size: 22px;
+            margin: 0;
+            background: linear-gradient(135deg, var(--info-color), var(--success-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-nav .nav-link {
+            color: var(--text-secondary);
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link.active {
+            background: var(--accent-bg);
+            color: var(--text-primary);
+            border-left: 4px solid var(--info-color);
+            padding-left: 11px; /* Adjust padding for border */
+        }
+
+        .sidebar-nav .nav-link i {
+            font-size: 18px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex-grow: 1;
+            padding: 25px;
+            overflow-y: auto; /* Enable scrolling for content */
+        }
+
+        /* Header (within main-content) */
+        .header {
+            background: none; /* Remove background from main header */
+            border-bottom: none; /* Remove border from main header */
+            padding: 0; /* Remove padding from main header */
+            margin-bottom: 25px;
+            box-shadow: none;
+            position: static;
+            backdrop-filter: none;
+        }
+
+        .header-left {
+            flex-grow: 1;
+        }
+
+        .system-title {
+            font-size: 28px;
+        }
+
+        .system-subtitle {
+            font-size: 14px;
+        }
+
+        /* Metrics Cards */
+        .metrics-row {
+            margin-bottom: 25px;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--info-color), var(--success-color));
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'Roboto Mono', monospace;
+            margin-bottom: 8px;
+            color: var(--info-color);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .metric-change {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .metric-change.positive {
+            background: rgba(81, 207, 102, 0.2);
+            color: var(--success-color);
+        }
+
+        .metric-change.negative {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--danger-color);
+        }
+
+        /* Charts Section */
+        .chart-section {
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chart-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-control {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-control.active {
+            background: var(--info-color);
+            color: white;
+            border-color: var(--info-color);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+        }
+
+        .chart-wrapper.small {
+            height: 250px;
+        }
+
+        /* Data Tables */
+        .data-table-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .table-header {
+            background: var(--accent-bg);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .advanced-table {
+            width: 100%;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .advanced-table th {
+            background: var(--accent-bg);
+            padding: 12px 15px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .advanced-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .advanced-table tbody tr:hover {
+            background: var(--accent-bg);
+        }
+
+        .performance-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .performance-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .performance-fill.excellent {
+            background: linear-gradient(90deg, var(--success-color), #66d9aa);
+        }
+
+        .performance-fill.good {
+            background: linear-gradient(90deg, var(--chart-warning), #ffe066);
+        }
+
+        .performance-fill.poor {
+            background: linear-gradient(90deg, var(--danger-color), #ff7979);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .control-panel-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .control-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .action-button {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .action-button:hover {
+            background: var(--info-color);
+            color: white;
+            border-color: var(--info-color);
+            transform: translateY(-1px);
+        }
+
+        .action-button.danger:hover {
+            background: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .action-button.success:hover {
+            background: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        /* Loading States */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            z-index: 10;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--info-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .camera-preview-active {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Multi-Camera Grid Styles */
+        .camera-stream-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-bg);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            min-height: 200px;
+        }
+
+        .camera-placeholder {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .camera-placeholder i {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .camera-stream {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        /* Global camera - larger size for 1920x1080 */
+        .global-camera .camera-stream {
+            object-fit: contain;
+        }
+
+        /* Robot cameras - maintain aspect ratio for 640x480 */
+        .robot-camera-container {
+            min-height: 200px;
+        }
+
+        .robot-camera-container .camera-stream {
+            object-fit: contain;
+            aspect-ratio: 4/3; /* 640x480 ratio */
+        }
+
+        /* Robot camera controls styling */
+        .robot-status-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .robot-status-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--accent-bg);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .robot-info {
+            flex: 1;
+        }
+
+        .robot-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .robot-controls .btn {
+            padding: 4px 8px;
+            font-size: 10px;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .camera-overlay i {
+            color: #ff4444;
+            animation: pulse 1.5s infinite;
+        }
+
+        .camera-status {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.online {
+            background: var(--success-color);
+            box-shadow: 0 0 4px var(--success-color);
+        }
+
+        .status-dot.offline {
+            background: var(--text-muted);
+        }
+
+        .camera-grid-item {
+            margin-bottom: 15px;
+        }
+
+        .camera-grid-item:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease;
+        }
+
+        /* Single Camera View */
+        #single-camera-container {
+            min-height: 600px;
+        }
+
+        /* Auto Switch Indicator */
+        .auto-switch-active {
+            background: var(--success-color) !important;
+            color: white !important;
+        }
+
+        /* Camera grid animations */
+        .camera-connecting {
+            border: 2px solid var(--info-color);
+            animation: pulse 1s infinite;
+        }
+
+        .camera-error {
+            border: 2px solid var(--danger-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container-fluid {
+                padding: 15px;
+            }
+            
+            .chart-wrapper {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .header-controls {
+                justify-content: center;
+            }
+            
+            .control-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* New Table Styles for Admin Dashboard */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .admin-table th {
+            background-color: var(--accent-bg);
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .admin-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .admin-table .status-badge {
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .admin-table .status-badge.idle { background-color: #28a745; color: white; } /* Green */
+        .admin-table .status-badge.busy { background-color: #ffc107; color: #333; } /* Yellow */
+        .admin-table .status-badge.error { background-color: #dc3545; color: white; } /* Red */
+        .admin-table .status-badge.charging { background-color: #007bff; color: white; } /* Blue */
+        .admin-table .status-badge.pending { background-color: #6c757d; color: white; } /* Gray */
+        .admin-table .status-badge.assigned { background-color: #17a2b8; color: white; } /* Cyan */
+        .admin-table .status-badge.in_progress { background-color: #6f42c1; color: white; } /* Purple */
+        .admin-table .status-badge.completed { background-color: #20c997; color: white; } /* Teal */
+        .admin-table .status-badge.failed { background-color: #fd7e14; color: white; } /* Orange */
+
+        .action-icon-btn {
+            background: none;
+            border: none;
+            color: var(--info-color);
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: color 0.2s ease;
+        }
+
+        .action-icon-btn:hover {
+            color: var(--success-color);
+        }
+
+        .action-icon-btn.danger:hover {
+            color: var(--danger-color);
+        }
+
+        .section-content {
+            display: none; /* Hidden by default */
+        }
+
+        .section-content.active {
+            display: block; /* Shown when active */
+        }
+
+        /* Fall Detection Alert Styles */
+        .fall-alert-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: white;
+            padding: 15px 25px;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 20px rgba(255, 68, 68, 0.5);
+            animation: fallAlertPulse 2s infinite;
+            border-bottom: 3px solid #ffffff;
+        }
+
+        .fall-alert-banner.active {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .fall-alert-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
+        .fall-alert-icon {
+            font-size: 24px;
+            animation: shake 0.5s infinite;
+        }
+
+        .fall-alert-message {
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .fall-alert-time {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .fall-alert-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .fall-alert-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .fall-alert-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: white;
+        }
+
+        .fall-alert-btn.acknowledge {
+            background: rgba(0, 255, 136, 0.3);
+            border-color: var(--success-color);
+        }
+
+        .fall-alert-btn.acknowledge:hover {
+            background: var(--success-color);
+            color: black;
+        }
+
+        @keyframes fallAlertPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        /* Adjust main content margin when alert is active */
+        body.fall-alert-active .sidebar,
+        body.fall-alert-active .main-content {
+            margin-top: 70px;
+        }
+
+        /* Fall Alert Modal */
+        .fall-alert-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .fall-alert-modal.show {
+            display: flex;
+        }
+
+        .fall-alert-modal-content {
+            background: var(--card-bg);
+            border: 2px solid var(--danger-color);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+            animation: modalAppear 0.3s ease-out;
+        }
+
+        .fall-alert-modal-icon {
+            font-size: 64px;
+            color: var(--danger-color);
+            margin-bottom: 20px;
+            animation: shake 0.5s infinite;
+        }
+
+        .fall-alert-modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--danger-color);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .fall-alert-modal-message {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .fall-alert-modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .fall-alert-modal-btn {
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .fall-alert-modal-btn.primary {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .fall-alert-modal-btn.primary:hover {
+            background: #cc0000;
+        }
+
+        .fall-alert-modal-btn.secondary {
+            background: var(--accent-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .fall-alert-modal-btn.secondary:hover {
+            background: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+
+        /* Robot Details Modal Specific Styles */
+        #robot-details-modal .fall-alert-modal-content {
+            max-width: 700px;
+            width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            text-align: left;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+        }
+
+        #robot-details-modal .fall-alert-modal-title {
+            color: var(--text-primary);
+            text-transform: none;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #robot-details-content h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+
+        #robot-details-content h4 i {
+            color: var(--info-color);
+        }
+
+        /* Robot Status Classes */
+        .robot-card-status {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .robot-card-status.online {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .robot-card-status.offline {
+            background: var(--text-muted);
+            color: white;
+        }
+
+        .robot-card-status.busy {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .robot-card-status.idle {
+            background: var(--info-color);
+            color: white;
+        }
+
+        .robot-card-status.critical {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .robot-card-status.good {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .robot-card-status.fair {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        /* Modal action buttons */
+        .modal-robot-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .modal-robot-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .modal-robot-btn.control {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .modal-robot-btn.control:hover {
+            background: #e0a800;
+        }
+
+        .modal-robot-btn.emergency {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .modal-robot-btn.emergency:hover {
+            background: #cc0000;
+        }
+
+        .modal-robot-btn.close {
+            background: var(--accent-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-robot-btn.close:hover {
+            background: var(--border-color);
+        }
+
+        /* Modal content section styling */
+        #robot-details-content {
+            color: var(--text-primary);
+        }
+
+        #robot-details-content > div {
+            background: var(--card-bg) !important;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #robot-details-content h4 {
+            color: var(--text-primary);
+            background: var(--accent-bg);
+            margin: -20px -20px 15px -20px;
+            padding: 12px 20px;
+            border-radius: 12px 12px 0 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        #robot-details-content .robot-card-status {
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        /* Grid layout fixes for modal content */
+        #robot-details-content div[style*="grid-template-columns"] {
+            display: grid !important;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        #robot-details-content div[style*="grid-template-columns"] > div {
+            background: var(--accent-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 6px !important;
+            padding: 8px 12px !important;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        #robot-details-content div[style*="grid-template-columns"] > div strong {
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* Special styling for task section */
+        #robot-details-content div[style*="background: var(--card-bg)"] {
+            background: var(--accent-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+            padding: 12px !important;
+        }
+
+        /* No task message styling */
+        #robot-details-content div[style*="text-align: center"][style*="color: var(--text-muted)"] {
+            background: var(--accent-bg) !important;
+            border: 2px dashed var(--border-color) !important;
+            color: var(--text-muted) !important;
+        }
+
+        /* Health status rows */
+        #robot-details-content div[style*="display: flex"][style*="justify-content: space-between"] {
+            background: var(--accent-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 6px !important;
+            padding: 10px 12px !important;
+            margin-bottom: 8px;
+        }
+
+        #robot-details-content div[style*="display: flex"][style*="justify-content: space-between"]:last-child {
+            margin-bottom: 0;
+        }
+
+        @keyframes modalAppear {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Battery Status Styles */
+        .battery-status-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Enhanced Battery Cards */
+        .battery-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .battery-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            border-color: var(--info-color);
+        }
+        
+        .battery-card.updating {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0, 170, 255, 0.3);
+            border-color: var(--info-color);
+        }
+        
+        .battery-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border-color);
+            transition: all 0.3s ease;
+            opacity: 0.8;
+        }
+
+        .battery-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .battery-robot-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .battery-robot-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--info-color);
+        }
+
+        .battery-robot-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .battery-level {
+            font-size: 28px;
+            font-weight: 800;
+            font-family: 'Roboto Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .battery-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .battery-progress {
+            position: relative;
+        }
+
+        .battery-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .battery-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: all 0.8s ease;
+            position: relative;
+            background: linear-gradient(90deg, var(--success-color), #51cf66);
+        }
+
+        .battery-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+            animation: batteryShine 3s infinite;
+        }
+
+        .battery-status-indicator {
+            position: absolute;
+            top: -8px;
+            right: 0;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: var(--card-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .battery-fill.loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+            animation: batteryShimmer 2s infinite;
+        }
+
+        @keyframes batteryShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .battery-timestamp {
+            font-size: 9px;
+            color: var(--text-muted);
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        /* Battery Level Colors */
+        .battery-critical {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .battery-critical .battery-fill {
+            background: linear-gradient(90deg, var(--danger-color), #ff7979);
+        }
+
+        .battery-critical .battery-icon {
+            color: var(--danger-color);
+            animation: batteryBlink 1s infinite;
+        }
+
+        .battery-low {
+            color: var(--warning-color);
+            border-color: var(--warning-color);
+        }
+
+        .battery-low .battery-fill {
+            background: linear-gradient(90deg, var(--warning-color), #ffe066);
+        }
+
+        .battery-low .battery-icon {
+            color: var(--warning-color);
+        }
+
+        .battery-medium {
+            color: var(--info-color);
+            border-color: var(--info-color);
+        }
+
+        .battery-medium .battery-fill {
+            background: linear-gradient(90deg, var(--info-color), #66d9aa);
+        }
+
+        .battery-medium .battery-icon {
+            color: var(--info-color);
+        }
+
+        .battery-good {
+            color: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .battery-good .battery-fill {
+            background: linear-gradient(90deg, var(--success-color), #66d9aa);
+        }
+
+        .battery-good .battery-icon {
+            color: var(--success-color);
+        }
+
+        .battery-offline {
+            color: var(--text-muted);
+            border-color: var(--border-color);
+            opacity: 0.6;
+        }
+
+        .battery-offline .battery-fill {
+            background: var(--text-muted);
+        }
+
+        .battery-offline .battery-icon {
+            color: var(--text-muted);
+        }
+
+        @keyframes batteryBlink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        /* Dashboard Subtabs */
+        .dashboard-subnav {
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .subnav-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 0;
+        }
+
+        .subnav-tab {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 15px 25px;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .subnav-tab:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .subnav-tab.active {
+            color: var(--info-color);
+            border-bottom-color: var(--info-color);
+            background: rgba(0, 170, 255, 0.1);
+        }
+
+        .subnav-tab i {
+            font-size: 16px;
+        }
+
+        /* Dashboard Subtab Content */
+        .dashboard-subtab {
+            display: none;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .dashboard-subtab.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Featured Metric Cards */
+        .metric-card.featured {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            text-align: left;
+            padding: 25px;
+        }
+
+        .metric-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--info-color), var(--success-color));
+            color: white;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .metric-content {
+            flex: 1;
+        }
+
+        .metric-card.featured .metric-value {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .metric-card.featured .metric-label {
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        /* Control Panel Variants */
+        .control-panel[style*="border-color: var(--danger-color)"] {
+            border: 2px solid var(--danger-color);
+            background: rgba(255, 68, 68, 0.05);
+        }
+
+        .control-panel[style*="border-color: var(--danger-color)"] .control-panel-header {
+            border-bottom-color: var(--danger-color);
+        }
+
+        .control-panel[style*="border-color: var(--danger-color)"] .chart-title {
+            color: var(--danger-color);
+        }
+
+        /* Individual Robot Cards */
+        .robot-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            height: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .robot-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            border-color: var(--info-color);
+        }
+
+        .robot-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .robot-card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .robot-card-title .robot-icon {
+            font-size: 24px;
+            color: var(--info-color);
+        }
+
+        .robot-card-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .robot-card-id {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--accent-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .robot-card-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .robot-card-status.online {
+            background: rgba(81, 207, 102, 0.2);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        .robot-card-status.busy {
+            background: rgba(255, 170, 0, 0.2);
+            color: var(--warning-color);
+            border: 1px solid var(--warning-color);
+        }
+
+        .robot-card-status.offline {
+            background: rgba(136, 136, 136, 0.2);
+            color: var(--text-muted);
+            border: 1px solid var(--text-muted);
+        }
+
+        .robot-card-status.error {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
+
+        .robot-card-content {
+            display: grid;
+            gap: 12px;
+        }
+
+        .robot-card-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .robot-card-metric-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .robot-card-metric-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .robot-card-battery {
+            margin: 8px 0;
+        }
+
+        .robot-card-battery-bar {
+            width: 100%;
+            height: 5px;
+            background: var(--accent-bg);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        .robot-card-battery-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        .robot-card-battery-fill.critical {
+            background: linear-gradient(90deg, var(--danger-color), #ff7979);
+        }
+
+        .robot-card-battery-fill.low {
+            background: linear-gradient(90deg, var(--warning-color), #ffe066);
+        }
+
+        .robot-card-battery-fill.medium {
+            background: linear-gradient(90deg, var(--info-color), #66d9aa);
+        }
+
+        .robot-card-battery-fill.good {
+            background: linear-gradient(90deg, var(--success-color), #66d9aa);
+        }
+
+        .robot-card-task {
+            background: var(--accent-bg);
+            border-radius: 5px;
+            padding: 8px 10px;
+            margin: 8px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .robot-card-task-title {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        .robot-card-task-content {
+            font-size: 12px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .robot-card-actions {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .robot-card-action {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 5px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .robot-card-action:hover {
+            background: var(--info-color);
+            color: white;
+            border-color: var(--info-color);
+            transform: translateY(-1px);
+        }
+
+        .robot-card-action.danger:hover {
+            background: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        /* Robot Card Status-based Styling */
+        .robot-card.idle {
+            border-left: 4px solid var(--success-color);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(81, 207, 102, 0.05) 100%);
+        }
+        
+        .robot-card.busy {
+            border-left: 4px solid var(--warning-color);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 170, 0, 0.05) 100%);
+            animation: busyPulse 2s infinite;
+        }
+        
+        .robot-card.offline {
+            border-left: 4px solid var(--text-muted);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(136, 136, 136, 0.05) 100%);
+            opacity: 0.7;
+        }
+        
+        .robot-card.error {
+            border-left: 4px solid var(--danger-color);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 68, 68, 0.05) 100%);
+            animation: errorBlink 1s infinite;
+        }
+        
+        /* Fix text visibility in dark theme */
+        .robot-card.idle .robot-card-name,
+        .robot-card.idle .robot-card-id,
+        .robot-card.idle .robot-card-metric-label,
+        .robot-card.idle .robot-card-metric-value,
+        .robot-card.idle .robot-card-metric-content {
+            color: var(--text-primary) !important;
+        }
+        
+        .robot-card.busy .robot-card-name,
+        .robot-card.busy .robot-card-id,
+        .robot-card.busy .robot-card-metric-label,
+        .robot-card.busy .robot-card-metric-value,
+        .robot-card.busy .robot-card-metric-content {
+            color: var(--text-primary) !important;
+        }
+        
+        .robot-card.offline .robot-card-name,
+        .robot-card.offline .robot-card-id,
+        .robot-card.offline .robot-card-metric-label,
+        .robot-card.offline .robot-card-metric-value,
+        .robot-card.offline .robot-card-metric-content {
+            color: var(--text-muted) !important;
+        }
+        
+        .robot-card.error .robot-card-name,
+        .robot-card.error .robot-card-id,
+        .robot-card.error .robot-card-metric-label,
+        .robot-card.error .robot-card-metric-value,
+        .robot-card.error .robot-card-metric-content {
+            color: var(--text-primary) !important;
+        }
+        
+        @keyframes busyPulse {
+            0%, 100% { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            50% { box-shadow: 0 4px 20px rgba(255, 170, 0, 0.3); }
+        }
+        
+        @keyframes errorBlink {
+            0%, 100% { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            50% { box-shadow: 0 4px 20px rgba(255, 68, 68, 0.4); }
+        }
+        
+        /* Robot Card Status Icons */
+        .robot-card.idle .robot-card-icon {
+            color: var(--success-color);
+        }
+        
+        .robot-card.busy .robot-card-icon {
+            color: var(--warning-color);
+        }
+        
+        .robot-card.offline .robot-card-icon {
+            color: var(--text-muted);
+        }
+        
+        .robot-card.error .robot-card-icon {
+            color: var(--danger-color);
+        }
+
+        /* Global Camera Styles */
+        .global-camera-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            height: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .camera-header {
+            background: var(--secondary-bg);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .camera-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .camera-title i {
+            color: var(--info-color);
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .camera-control-btn {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .camera-control-btn:hover {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-color: var(--info-color);
+        }
+
+        .camera-control-btn.active {
+            background: var(--info-color);
+            color: white;
+            border-color: var(--info-color);
+        }
+
+        .camera-view {
+            height: calc(100% - 60px);
+            position: relative;
+            background: #000;
+        }
+
+        .camera-feed {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .camera-placeholder {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-muted);
+            gap: 10px;
+        }
+
+        .camera-placeholder i {
+            font-size: 48px;
+            opacity: 0.3;
+        }
+
+        .camera-status {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .camera-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: 100%;
+            gap: 2px;
+            padding: 2px;
+        }
+
+        .camera-mini-feed {
+            background: var(--secondary-bg);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .camera-mini-placeholder {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-muted);
+            gap: 5px;
+            font-size: 12px;
+        }
+
+        .camera-mini-placeholder i {
+            font-size: 24px;
+            opacity: 0.5;
+        }
+
+        /* Battery Status Sidebar */
+        .battery-status-sidebar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+        }
+
+        .battery-sidebar-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .battery-sidebar-header i {
+            color: var(--success-color);
+        }
+
+        .battery-status-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .battery-status-sidebar .battery-card {
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+        }
+
+        .battery-status-sidebar .battery-level {
+            font-size: 18px;
+        }
+
+        .battery-status-sidebar .battery-robot-name {
+            font-size: 12px;
+        }
+
+        /* Robot Status Indicators */
+        .robot-status-indicators {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .status-indicator-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .status-indicators-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--accent-bg);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-dot.online {
+            background: var(--success-color);
+            box-shadow: 0 0 0 2px rgba(81, 207, 102, 0.3);
+        }
+
+        .status-dot.busy {
+            background: var(--warning-color);
+            box-shadow: 0 0 0 2px rgba(255, 170, 0, 0.3);
+        }
+
+        .status-dot.offline {
+            background: var(--text-muted);
+        }
+
+        .status-dot.error {
+            background: var(--danger-color);
+            box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.3);
+        }
+
+        .status-text {
+            margin-left: auto;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        /* Control Center Layout */
+        .control-center-layout {
+            min-height: 400px;
+        }
+
+        .overview-top-row {
+            margin-bottom: 30px !important;
+        }
+
+        /* Section Headers */
+        .robots-section {
+            margin-top: 30px;
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section-header h4 {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h4 i {
+            color: var(--info-color);
+        }
+
+        /* Chart content styling */
+        .chart-content {
+            position: relative;
+            height: 200px;
+            padding: 15px;
+        }
+
+        .chart-content canvas {
+            max-height: 100%;
+        }
+
+        /* Robot table toggle */
+        .table-toggle {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .table-toggle:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .chevron-icon {
+            transition: transform 0.2s ease;
+        }
+
+        .chevron-icon.rotated {
+            transform: rotate(180deg);
+        }
+        
+        #robot-detailed-table {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        /* Robot Table Enhancement - Dashboard Style */
+        .table {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .table thead th {
+            background: var(--accent-bg);
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            padding: 15px 12px;
+            vertical-align: middle;
+        }
+
+        .table tbody tr {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background: var(--accent-bg);
+            transform: translateY(-0.5px);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+        }
+
+        .table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .table tbody td {
+            padding: 16px 12px;
+            vertical-align: middle;
+            color: var(--text-primary) !important;
+            font-size: 13px;
+        }
+        
+        /* Force dark theme colors for table */
+        #robot-detailed-table .table {
+            background: var(--card-bg) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        #robot-detailed-table .table tbody tr {
+            background: var(--card-bg) !important;
+        }
+        
+        #robot-detailed-table .table tbody tr:hover {
+            background: var(--accent-bg) !important;
+        }
+        
+        #robot-detailed-table .table tbody td {
+            color: var(--text-primary) !important;
+            background: transparent !important;
+        }
+        
+        #robot-detailed-table .table thead th {
+            background: var(--accent-bg) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        /* Force colors for table elements */
+        #robot-detailed-table .robot-id,
+        #robot-detailed-table .robot-name,
+        #robot-detailed-table .task-id,
+        #robot-detailed-table .last-update,
+        #robot-detailed-table .no-task {
+            color: var(--text-primary) !important;
+        }
+        
+        #robot-detailed-table .text-muted {
+            color: var(--text-muted) !important;
+        }
+        
+        #robot-detailed-table .action-icon-btn {
+            background: var(--accent-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-secondary) !important;
+        }
+        
+        #robot-detailed-table .action-icon-btn:hover {
+            background: var(--info-color) !important;
+            color: white !important;
+        }
+
+        /* Robot Status Badge in Table */
+        .table .robot-status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .table .robot-status-badge.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success-color);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .table .robot-status-badge.idle {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--info-color);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .table .robot-status-badge.busy {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .table .robot-status-badge.offline {
+            background: rgba(107, 114, 128, 0.2);
+            color: var(--text-muted);
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
+        /* Battery Progress Bar in Table */
+        .table .battery-progress {
+            width: 60px;
+            height: 8px;
+            background: var(--accent-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        .table .battery-progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .table .battery-progress-fill.critical {
+            background: linear-gradient(90deg, var(--danger-color), #ff7979);
+        }
+
+        .table .battery-progress-fill.low {
+            background: linear-gradient(90deg, var(--warning-color), #fbbf24);
+        }
+
+        .table .battery-progress-fill.medium {
+            background: linear-gradient(90deg, var(--info-color), #60a5fa);
+        }
+
+        .table .battery-progress-fill.good {
+            background: linear-gradient(90deg, var(--success-color), #34d399);
+        }
+
+        .table .battery-text {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* Action buttons in table */
+        .table .action-icon-btn {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .table .action-icon-btn:hover {
+            background: var(--info-color);
+            color: white;
+            border-color: var(--info-color);
+            transform: translateY(-1px);
+        }
+
+        .table .action-icon-btn.danger:hover {
+            background: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        /* Robot ID styling */
+        .table .robot-id {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .table .robot-name {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        /* Task info in table */
+        .table .task-info {
+            font-size: 12px;
+        }
+
+        .table .task-id {
+            color: var(--info-color);
+            font-weight: 600;
+        }
+
+        .table .no-task {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Last update time styling */
+        .table .last-update {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Missing CSS classes for robot table */
+        .table .battery-text {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .table .no-task {
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: 12px;
+        }
+
+        /* Status badge compatibility - unify status-badge and robot-status-badge */
+        .table .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .table .status-badge.idle,
+        .table .status-badge.pending {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--info-color);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .table .status-badge.busy,
+        .table .status-badge.assigned,
+        .table .status-badge.in_progress {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .table .status-badge.error,
+        .table .status-badge.failed {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .table .status-badge.success,
+        .table .status-badge.completed {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success-color);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .table .status-badge.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .table .status-badge.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+
+        /* Table container improvements */
+        .table-responsive {
+            background: transparent;
+            border-radius: 12px;
+        }
+
+        /* Section title improvements for robots */
+        .robots-section .d-flex.justify-content-between.align-items-center {
+            background: var(--accent-bg);
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .robots-section .table-responsive {
+            border-radius: 0 0 8px 8px;
+        }
+        
+        /* Robot Status Monitor - Enhanced Overview */
+        .robot-status-monitor {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .monitor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .monitor-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .monitor-title i {
+            color: var(--info-color);
+            font-size: 18px;
+        }
+        
+        .monitor-status-badge {
+            background: var(--success-color);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+        
+        .robot-status-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--accent-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-indicator::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+        
+        .status-indicator:hover {
+            background: var(--hover-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Status-based styling */
+        .status-indicator.online {
+            background: linear-gradient(135deg, var(--accent-bg) 0%, rgba(81, 207, 102, 0.05) 100%);
+            border-color: rgba(81, 207, 102, 0.3);
+        }
+        .status-indicator.online::before {
+            background: linear-gradient(to bottom, var(--success-color), #51cf66);
+        }
+        
+        .status-indicator.busy {
+            background: linear-gradient(135deg, var(--accent-bg) 0%, rgba(255, 212, 59, 0.05) 100%);
+            border-color: rgba(255, 212, 59, 0.3);
+        }
+        .status-indicator.busy::before {
+            background: linear-gradient(to bottom, var(--warning-color), #ffd43b);
+            animation: busyPulse 2s infinite;
+        }
+        
+        .status-indicator.offline {
+            background: var(--accent-bg);
+            border-color: var(--border-color);
+            opacity: 0.7;
+        }
+        .status-indicator.offline::before {
+            background: var(--text-muted);
+        }
+        
+        .status-indicator.error {
+            background: linear-gradient(135deg, var(--accent-bg) 0%, rgba(255, 68, 68, 0.05) 100%);
+            border-color: rgba(255, 68, 68, 0.3);
+        }
+        .status-indicator.error::before {
+            background: linear-gradient(to bottom, var(--danger-color), #ff4444);
+            animation: errorBlink 1.5s infinite;
+        }
+        
+        .status-content {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+        }
+        
+        .status-icon-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-dot.online {
+            background: radial-gradient(circle, var(--success-color), #51cf66);
+            box-shadow: 0 0 0 3px rgba(81, 207, 102, 0.2), 0 0 8px rgba(81, 207, 102, 0.4);
+        }
+        
+        .status-dot.busy {
+            background: radial-gradient(circle, var(--warning-color), #ffd43b);
+            box-shadow: 0 0 0 3px rgba(255, 212, 59, 0.2), 0 0 8px rgba(255, 212, 59, 0.4);
+            animation: busyPulse 1.8s infinite;
+        }
+        
+        .status-dot.offline {
+            background: var(--text-muted);
+            opacity: 0.6;
+            box-shadow: 0 0 0 3px rgba(136, 136, 136, 0.1);
+        }
+        
+        .status-dot.error {
+            background: radial-gradient(circle, var(--danger-color), #ff4444);
+            box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.2), 0 0 8px rgba(255, 68, 68, 0.4);
+            animation: errorBlink 1.2s infinite;
+        }
+        
+        .robot-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .robot-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .robot-status-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        
+        .robot-status-text.online {
+            color: var(--success-color);
+        }
+        .robot-status-text.busy {
+            color: var(--warning-color);
+        }
+        .robot-status-text.error {
+            color: var(--danger-color);
+        }
+        
+        .robot-battery {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            min-width: 60px;
+        }
+        
+        .battery-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .battery-icon {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        
+        .battery-icon.good {
+            color: var(--success-color);
+        }
+        .battery-icon.medium {
+            color: var(--info-color);
+        }
+        .battery-icon.low {
+            color: var(--warning-color);
+        }
+        .battery-icon.critical {
+            color: var(--danger-color);
+        }
+        
+        .battery-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Roboto Mono', monospace;
+        }
+        
+        .battery-text.good {
+            color: var(--success-color);
+        }
+        .battery-text.medium {
+            color: var(--info-color);
+        }
+        .battery-text.low {
+            color: var(--warning-color);
+        }
+        .battery-text.critical {
+            color: var(--danger-color);
+        }
+        
+        .battery-bar {
+            width: 50px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .battery-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+        
+        .battery-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+            animation: batteryShine 3s infinite;
+        }
+        
+        .battery-fill.good {
+            background: linear-gradient(90deg, var(--success-color), #51cf66);
+        }
+        .battery-fill.medium {
+            background: linear-gradient(90deg, var(--info-color), #66d9aa);
+        }
+        .battery-fill.low {
+            background: linear-gradient(90deg, var(--warning-color), #ffe066);
+        }
+        .battery-fill.critical {
+            background: linear-gradient(90deg, var(--danger-color), #ff7979);
+            animation: batteryLow 2s infinite;
+        }
+        
+        /* Enhanced animations */
+        @keyframes busyPulse {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+        
+        @keyframes errorBlink {
+            0%, 100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.4;
+                transform: scale(0.95);
+            }
+        }
+        
+        @keyframes batteryShine {
+            0%, 100% { 
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            50% { 
+                transform: translateX(100%);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes batteryLow {
+            0%, 100% { 
+                opacity: 1;
+            }
+            50% { 
+                opacity: 0.6;
+            }
+        }
+        
+        /* Fleet Summary Cards */
+        .fleet-summary-cards {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .summary-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 140px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .summary-card:hover {
+            background: var(--hover-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .summary-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--accent-bg);
+            border-radius: 8px;
+            color: var(--info-color);
+            font-size: 18px;
+        }
+        
+        .summary-content {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .summary-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Roboto Mono', monospace;
+            margin-bottom: 2px;
+        }
+        
+        .summary-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .fleet-summary-cards {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .summary-card {
+                width: 100%;
+                min-width: unset;
+            }
+        }
+        
+        /* Battery Card Details */
+        .battery-details {
+            margin-top: 12px;
+        }
+        
+        .battery-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+        
+        .detail-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-family: 'Roboto Mono', monospace;
+        }
+        
+        .battery-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: auto;
+        }
+
+        .battery-detail {
+            background: var(--accent-bg);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .detail-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Enhanced Battery Card Status Classes */
+        .battery-card.critical {
+            border-color: var(--danger-color);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 68, 68, 0.05) 100%);
+        }
+        
+        .battery-card.critical::before {
+            background: var(--danger-color);
+            opacity: 0.6;
+        }
+        
+        .battery-card.critical .battery-level {
+            color: var(--danger-color);
+        }
+        
+        .battery-card.low {
+            border-color: rgba(255, 170, 0, 0.3);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 170, 0, 0.03) 100%);
+        }
+        
+        .battery-card.low::before {
+            background: var(--warning-color);
+            opacity: 0.6;
+        }
+        
+        .battery-card.low .battery-level {
+            color: var(--warning-color);
+        }
+        
+        .battery-card.medium {
+            border-color: rgba(0, 170, 255, 0.3);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(0, 170, 255, 0.03) 100%);
+        }
+        
+        .battery-card.medium::before {
+            background: var(--info-color);
+            opacity: 0.6;
+        }
+        
+        .battery-card.medium .battery-level {
+            color: var(--info-color);
+        }
+        
+        .battery-card.good {
+            border-color: rgba(81, 207, 102, 0.3);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(81, 207, 102, 0.03) 100%);
+        }
+        
+        .battery-card.good::before {
+            background: var(--success-color);
+            opacity: 0.6;
+        }
+        
+        .battery-card.good .battery-level {
+            color: var(--success-color);
+        }
+        
+        .battery-fill.critical {
+            background: linear-gradient(90deg, var(--danger-color), #ff7979);
+        }
+        
+        .battery-fill.low {
+            background: linear-gradient(90deg, var(--warning-color), #ffe066);
+        }
+        
+        .battery-fill.medium {
+            background: linear-gradient(90deg, var(--info-color), #66d9aa);
+        }
+        
+        .battery-fill.good {
+            background: linear-gradient(90deg, var(--success-color), #66d9aa);
+        }
+    </style>
+</head>
+<body>
+    <!-- Fall Detection Alert Banner -->
+    <div id="fall-alert-banner" class="fall-alert-banner">
+        <div class="fall-alert-content">
+            <i class="bi bi-exclamation-triangle-fill fall-alert-icon"></i>
+            <div>
+                <div class="fall-alert-message" id="fall-alert-message">Fall Detected!</div>
+                <div class="fall-alert-time" id="fall-alert-time">Time: --:--:--</div>
+            </div>
+        </div>
+        <div class="fall-alert-actions">
+            <button class="fall-alert-btn acknowledge" onclick="acknowledgeFallAlert()">
+                <i class="bi bi-check-circle"></i> Acknowledge
+            </button>
+            <button class="fall-alert-btn" onclick="clearFallAlert()">
+                <i class="bi bi-x-circle"></i> Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- Fall Detection Alert Modal -->
+    <div id="fall-alert-modal" class="fall-alert-modal">
+        <div class="fall-alert-modal-content">
+            <i class="bi bi-exclamation-triangle-fill fall-alert-modal-icon"></i>
+            <h2 class="fall-alert-modal-title">Emergency Alert</h2>
+            <p class="fall-alert-modal-message" id="fall-alert-modal-message">
+                A fall has been detected! Please check the situation immediately and take appropriate action.
+            </p>
+            <div class="fall-alert-modal-actions">
+                <button class="fall-alert-modal-btn primary" onclick="acknowledgeAndCloseModal()">
+                    <i class="bi bi-check-circle"></i> Acknowledge & Close
+                </button>
+                <button class="fall-alert-modal-btn secondary" onclick="testFallAlert()">
+                    <i class="bi bi-gear"></i> Test Alert
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Robot Details Modal -->
+    <div id="robot-details-modal" class="fall-alert-modal">
+        <div class="fall-alert-modal-content" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="fall-alert-modal-title" style="color: var(--info-color); margin: 0;">
+                    <i class="bi bi-robot"></i> <span id="robot-details-name">Robot Details</span>
+                </h2>
+                <button onclick="closeRobotDetailsModal()" style="background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer;">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            
+            <div id="robot-details-content" style="text-align: left;">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            
+            <div class="fall-alert-modal-actions" style="margin-top: 25px;">
+                <button class="fall-alert-modal-btn secondary" onclick="controlRobotFromModal('reset')" id="robot-modal-reset-btn">
+                    <i class="bi bi-arrow-clockwise"></i> Reset Robot
+                </button>
+                <button class="fall-alert-modal-btn primary" onclick="controlRobotFromModal('stop')" id="robot-modal-stop-btn" style="background: var(--danger-color);">
+                    <i class="bi bi-stop-circle"></i> Emergency Stop
+                </button>
+                <button class="fall-alert-modal-btn secondary" onclick="closeRobotDetailsModal()">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>HANA Admin</h2>
+            <small class="text-muted">Control Panel</small>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="#robots" class="nav-link" data-section="robots">
+                <i class="bi bi-robot"></i> Robots
+            </a>
+            <a href="#tasks" class="nav-link" data-section="tasks">
+                <i class="bi bi-list-task"></i> Tasks
+            </a>
+            <a href="#users" class="nav-link" data-section="users">
+                <i class="bi bi-people"></i> Users
+            </a>
+            <a href="#items" class="nav-link" data-section="items">
+                <i class="bi bi-box-seam"></i> Items
+            </a>
+            <a href="#camera" class="nav-link" data-section="camera">
+                <i class="bi bi-camera-video"></i> Camera Stream
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header (moved inside main-content) -->
+        <div class="header">
+            <div class="header-left">
+                <h1 class="system-title" id="current-section-title">Dashboard</h1>
+                <div class="system-subtitle" id="current-section-subtitle">Overview of fleet operations</div>
+            </div>
+            <div class="header-controls">
+                <button class="control-btn" onclick="refreshData()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Refresh
+                </button>
+                <button class="control-btn" onclick="exportData()">
+                    <i class="bi bi-download"></i>
+                    Export
+                </button>
+                <button class="control-btn" onclick="window.open('/test', '_blank')">
+                    <i class="bi bi-monitor"></i>
+                    Basic Monitor
+                </button>
+                <div class="refresh-indicator"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="section-content active">
+            <!-- Dashboard Sub-Navigation -->
+            <div class="dashboard-subnav">
+                <div class="subnav-tabs">
+                    <button class="subnav-tab active" data-subtab="overview">
+                        <i class="bi bi-speedometer2"></i> Overview
+                    </button>
+                    <button class="subnav-tab" data-subtab="analytics">
+                        <i class="bi bi-graph-up"></i> Analytics  
+                    </button>
+                    <button class="subnav-tab" data-subtab="system">
+                        <i class="bi bi-gear"></i> System
+                    </button>
+                    <button class="subnav-tab" data-subtab="control">
+                        <i class="bi bi-sliders"></i> Control
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overview Subtab -->
+            <div id="dashboard-overview" class="dashboard-subtab active">
+                <!-- Top Overview Metrics Row -->
+                <div class="row metrics-row overview-top-row mb-4">
+                    <div class="col-md-3">
+                        <div class="metric-card featured">
+                            <div class="metric-icon"><i class="bi bi-clipboard-check"></i></div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="total-tasks-today">0</div>
+                                <div class="metric-label">Today's Tasks</div>
+                                <div class="metric-change positive" id="tasks-change">+0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card featured">
+                            <div class="metric-icon"><i class="bi bi-stopwatch"></i></div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="avg-completion-time">0.0</div>
+                                <div class="metric-label">Avg Time (min)</div>
+                                <div class="metric-change" id="time-change">±0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card featured">
+                            <div class="metric-icon"><i class="bi bi-check-circle"></i></div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="success-rate">0%</div>
+                                <div class="metric-label">Success Rate</div>
+                                <div class="metric-change positive" id="success-change">+0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card featured">
+                            <div class="metric-icon"><i class="bi bi-people"></i></div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="active-users">0</div>
+                                <div class="metric-label">Active Users</div>
+                                <div class="metric-change positive" id="users-change">+0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Control Center Layout -->
+                <div class="row control-center-layout mb-4">
+                    <!-- Global Camera Section (Left) -->
+                    <div class="col-lg-8">
+                        <div class="global-camera-container">
+                            <div class="camera-header">
+                                <div class="camera-title">
+                                    <i class="bi bi-camera-video"></i>
+                                    Global Camera Feed
+                                    <span class="badge bg-info ms-2" style="font-size: 10px;">Port 5000</span>
+                                </div>
+                                <div class="camera-controls">
+                                    <button class="camera-control-btn" onclick="toggleGlobalCamera()" id="global-camera-toggle">
+                                        <i class="bi bi-play-fill"></i> Start Feed
+                                    </button>
+                                    <button class="camera-control-btn" onclick="refreshGlobalCamera()">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="camera-view">
+                                <div id="global-camera-feed" class="camera-feed">
+                                    <div class="camera-placeholder" id="global-camera-placeholder">
+                                        <i class="bi bi-camera-video"></i>
+                                        <div>Global Camera</div>
+                                        <div class="camera-status">Port 5000 - Click Start to Connect</div>
+                                    </div>
+                                    <img class="camera-stream" id="global-camera-stream" 
+                                         src="" style="display: none;" 
+                                         onerror="handleGlobalCameraError()" 
+                                         onload="handleGlobalCameraLoad()" />
+                                    <div class="camera-overlay" id="global-camera-overlay" style="display: none;">
+                                        <i class="bi bi-record-circle"></i> LIVE
+                                    </div>
+                                    <div class="camera-status" id="global-camera-status">
+                                        <span class="status-dot offline"></span> Offline
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Robot Status Monitor (Right) -->
+                    <div class="col-lg-4">
+                        <div class="robot-status-monitor">
+                            <div class="monitor-header">
+                                <div class="monitor-title">
+                                    <i class="bi bi-robot"></i>
+                                    Robot Status Monitor
+                                </div>
+                                <span class="monitor-status-badge" id="monitor-badge">ONLINE</span>
+                            </div>
+                            <div class="robot-status-grid">
+                                <div class="status-indicator" id="robot-status-dp09">
+                                    <div class="status-content">
+                                        <div class="status-icon-wrapper">
+                                            <div class="status-dot offline"></div>
+                                        </div>
+                                        <div class="robot-info">
+                                            <div class="robot-name">HANABOT_8</div>
+                                            <div class="robot-status-text offline">Offline</div>
+                                        </div>
+                                    </div>
+                                    <div class="robot-battery">
+                                        <div class="battery-info">
+                                            <i class="bi bi-battery battery-icon" id="battery-icon-dp09"></i>
+                                            <span class="battery-text" id="quick-battery-dp09">--%</span>
+                                        </div>
+                                        <div class="battery-bar">
+                                            <div class="battery-fill good" id="battery-bar-dp09" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="status-indicator" id="robot-status-dp03">
+                                    <div class="status-content">
+                                        <div class="status-icon-wrapper">
+                                            <div class="status-dot offline"></div>
+                                        </div>
+                                        <div class="robot-info">
+                                            <div class="robot-name">HANABOT_9</div>
+                                            <div class="robot-status-text offline">Offline</div>
+                                        </div>
+                                    </div>
+                                    <div class="robot-battery">
+                                        <div class="battery-info">
+                                            <i class="bi bi-battery battery-icon" id="battery-icon-dp03"></i>
+                                            <span class="battery-text" id="quick-battery-dp03">--%</span>
+                                        </div>
+                                        <div class="battery-bar">
+                                            <div class="battery-fill good" id="battery-bar-dp03" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="status-indicator" id="robot-status-hanabot3">
+                                    <div class="status-content">
+                                        <div class="status-icon-wrapper">
+                                            <div class="status-dot offline"></div>
+                                        </div>
+                                        <div class="robot-info">
+                                            <div class="robot-name">HANABOT_3</div>
+                                            <div class="robot-status-text offline">Offline</div>
+                                        </div>
+                                    </div>
+                                    <div class="robot-battery">
+                                        <div class="battery-info">
+                                            <i class="bi bi-battery battery-icon" id="battery-icon-hanabot3"></i>
+                                            <span class="battery-text" id="quick-battery-hanabot3">--%</span>
+                                        </div>
+                                        <div class="battery-bar">
+                                            <div class="battery-fill good" id="battery-bar-hanabot3" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fleet Summary Row -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="fleet-summary-cards">
+                            <div class="summary-card">
+                                <div class="summary-icon">
+                                    <i class="bi bi-wifi"></i>
+                                </div>
+                                <div class="summary-content">
+                                    <div class="summary-value" id="summary-online">0/3</div>
+                                    <div class="summary-label">Online</div>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-icon">
+                                    <i class="bi bi-list-task"></i>
+                                </div>
+                                <div class="summary-content">
+                                    <div class="summary-value" id="summary-tasks">0</div>
+                                    <div class="summary-label">Active Tasks</div>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-icon">
+                                    <i class="bi bi-battery-half"></i>
+                                </div>
+                                <div class="summary-content">
+                                    <div class="summary-value" id="summary-battery">--%</div>
+                                    <div class="summary-label">Avg Battery</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Analytics Subtab -->
+            <div id="dashboard-analytics" class="dashboard-subtab">
+                <!-- Charts Section -->
+            <div class="row chart-section">
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <i class="bi bi-graph-up"></i>
+                                Hourly Task Distribution (24h)
+                            </div>
+                            <div class="chart-controls">
+                                <button class="chart-control active" data-period="24h">24H</button>
+                                <button class="chart-control" data-period="7d">7D</button>
+                                <button class="chart-control" data-period="30d">30D</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="hourlyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <i class="bi bi-pie-chart"></i>
+                                Task Status Distribution
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row chart-section">
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <i class="bi bi-robot"></i>
+                                Robot Performance Comparison
+                            </div>
+                        </div>
+                        <div class="chart-wrapper small">
+                            <canvas id="robotChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <i class="bi bi-trend-up"></i>
+                                30-Day Performance Trend
+                            </div>
+                        </div>
+                        <div class="chart-wrapper small">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Tables (Top Users, Popular Items) -->
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="data-table-container">
+                        <div class="table-header">
+                            <div class="table-title">
+                                <i class="bi bi-person-lines-fill"></i>
+                                Top Users (7 days)
+                            </div>
+                        </div>
+                        <table class="advanced-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Orders</th>
+                                    <th>Completed</th>
+                                    <th>Success Rate</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-users-table">
+                                <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="data-table-container">
+                        <div class="table-header">
+                            <div class="table-title">
+                                <i class="bi bi-box-seam"></i>
+                                Popular Items (7 days)
+                            </div>
+                        </div>
+                        <table class="advanced-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Orders</th>
+                                    <th>Delivered</th>
+                                    <th>Success Rate</th>
+                                    <th>Popularity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="popular-items-table">
+                                <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            </div>
+
+            <!-- System Subtab -->
+            <div id="dashboard-system" class="dashboard-subtab">
+                <!-- System Metrics -->
+                <div class="row metrics-row">
+                    <div class="col-md-3">
+                        <div class="metric-card">
+                            <div class="metric-icon"><i class="bi bi-camera-video"></i></div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="active-cameras">0</div>
+                                <div class="metric-label">Active Cameras</div>
+                                <div class="metric-change positive" id="cameras-change">+0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card">
+                            <div class="metric-icon"><i class="bi bi-wifi"></i></div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="camera-bandwidth">0.0</div>
+                                <div class="metric-label">Bandwidth (Mbps)</div>
+                                <div class="metric-change" id="bandwidth-change">±0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card">
+                            <div class="metric-icon"><i class="bi bi-clock"></i></div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="system-uptime">0h</div>
+                                <div class="metric-label">System Uptime</div>
+                                <div class="metric-change positive" id="uptime-change">100%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card">
+                            <div class="metric-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="camera-alerts">0</div>
+                                <div class="metric-label">Alerts Today</div>
+                                <div class="metric-change negative" id="alerts-change">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status Tables -->
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="data-table-container">
+                            <div class="table-header">
+                                <div class="table-title">
+                                    <i class="bi bi-hdd"></i>
+                                    System Resources
+                                </div>
+                            </div>
+                            <table class="advanced-table">
+                                <thead>
+                                    <tr>
+                                        <th>Component</th>
+                                        <th>Usage</th>
+                                        <th>Status</th>
+                                        <th>Performance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="system-resources-table">
+                                    <tr>
+                                        <td>CPU</td>
+                                        <td>45%</td>
+                                        <td><span class="status-badge idle">Normal</span></td>
+                                        <td>
+                                            <div class="performance-bar">
+                                                <div class="performance-fill good" style="width: 45%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Memory</td>
+                                        <td>62%</td>
+                                        <td><span class="status-badge busy">Active</span></td>
+                                        <td>
+                                            <div class="performance-bar">
+                                                <div class="performance-fill good" style="width: 62%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Disk</td>
+                                        <td>23%</td>
+                                        <td><span class="status-badge idle">Normal</span></td>
+                                        <td>
+                                            <div class="performance-bar">
+                                                <div class="performance-fill excellent" style="width: 23%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Network</td>
+                                        <td>78%</td>
+                                        <td><span class="status-badge busy">High Load</span></td>
+                                        <td>
+                                            <div class="performance-bar">
+                                                <div class="performance-fill poor" style="width: 78%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="data-table-container">
+                            <div class="table-header">
+                                <div class="table-title">
+                                    <i class="bi bi-shield-check"></i>
+                                    Security Status
+                                </div>
+                            </div>
+                            <table class="advanced-table">
+                                <thead>
+                                    <tr>
+                                        <th>Service</th>
+                                        <th>Status</th>
+                                        <th>Last Check</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="security-status-table">
+                                    <tr>
+                                        <td>Fall Detection</td>
+                                        <td><span class="status-badge idle">Active</span></td>
+                                        <td>2 min ago</td>
+                                        <td><button class="action-icon-btn"><i class="bi bi-gear"></i></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Camera Monitoring</td>
+                                        <td><span class="status-badge idle">Active</span></td>
+                                        <td>1 min ago</td>
+                                        <td><button class="action-icon-btn"><i class="bi bi-gear"></i></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Database Backup</td>
+                                        <td><span class="status-badge completed">Complete</span></td>
+                                        <td>30 min ago</td>
+                                        <td><button class="action-icon-btn"><i class="bi bi-download"></i></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Fleet Manager</td>
+                                        <td><span class="status-badge idle">Running</span></td>
+                                        <td>Live</td>
+                                        <td><button class="action-icon-btn success"><i class="bi bi-check-circle"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Subtab -->
+            <div id="dashboard-control" class="dashboard-subtab">
+                <!-- Emergency Controls -->
+                <div class="control-panel" style="border-color: var(--danger-color);">
+                    <div class="control-panel-header">
+                        <div class="chart-title">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Emergency Controls
+                        </div>
+                    </div>
+                    <div class="control-actions">
+                        <button class="action-button danger" onclick="emergencyStop()">
+                            <i class="bi bi-stop-circle"></i>
+                            Emergency Stop All
+                        </button>
+                        <button class="action-button danger" onclick="clearFailedTasks()">
+                            <i class="bi bi-trash"></i>
+                            Clear Failed Tasks
+                        </button>
+                        <button class="action-button" onclick="testFallAlert()" style="background: var(--warning-color); border-color: var(--warning-color);">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Test Fall Alert
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fleet Management Controls -->
+                <div class="control-panel">
+                    <div class="control-panel-header">
+                        <div class="chart-title">
+                            <i class="bi bi-gear"></i>
+                            Fleet Management
+                        </div>
+                    </div>
+                    <div class="control-actions">
+                        <button class="action-button" onclick="resetSystem()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Reset Fleet Status  
+                        </button>
+                        <button class="action-button success" onclick="optimizeRoutes()">
+                            <i class="bi bi-diagram-3"></i>
+                            Optimize Routes
+                        </button>
+                        <button class="action-button" onclick="maintenanceMode()">
+                            <i class="bi bi-tools"></i>
+                            Maintenance Mode
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Operations -->
+                <div class="control-panel">
+                    <div class="control-panel-header">
+                        <div class="chart-title">
+                            <i class="bi bi-server"></i>
+                            System Operations
+                        </div>
+                    </div>
+                    <div class="control-actions">
+                        <button class="action-button" onclick="generateReport()">
+                            <i class="bi bi-file-text"></i>
+                            Generate Report
+                        </button>
+                        <button class="action-button" onclick="backupDatabase()">
+                            <i class="bi bi-download"></i>
+                            Backup Database
+                        </button>
+                        <button class="action-button" onclick="systemDiagnostics()">
+                            <i class="bi bi-cpu"></i>
+                            Run Diagnostics
+                        </button>
+                        <button class="action-button" onclick="cleanupLogs()">
+                            <i class="bi bi-journal-x"></i>
+                            Cleanup Logs
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Robots Section -->
+        <div id="robots-section" class="section-content">
+            <!-- Fleet Overview Cards -->
+            <div class="row mb-3">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="fleet-total-robots">0</div>
+                            <div class="metric-label">Total Robots</div>
+                            <div class="metric-change positive" id="fleet-robots-online">0 Online</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #007bff, #0056b3);">
+                            <i class="bi bi-gear-fill"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="fleet-active-tasks">0</div>
+                            <div class="metric-label">Active Tasks</div>
+                            <div class="metric-change" id="fleet-task-efficiency">0% Efficiency</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #ffc107, #e0a800);">
+                            <i class="bi bi-battery-half"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="fleet-avg-battery">0%</div>
+                            <div class="metric-label">Avg Battery</div>
+                            <div class="metric-change" id="fleet-battery-status">Normal</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: linear-gradient(135deg, #dc3545, #c82333);">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="fleet-alerts">0</div>
+                            <div class="metric-label">Alerts</div>
+                            <div class="metric-change negative" id="fleet-alert-status">All Clear</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Robot Battery Cards Row -->
+            <div class="section-header">
+                <h4><i class="bi bi-battery-charging"></i> Robot Battery Status</h4>
+            </div>
+            <div class="row mb-4">
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="battery-card" data-robot="HANABOT_8">
+                        <div class="battery-header">
+                            <div class="battery-robot-info">
+                                <div class="battery-robot-icon">
+                                    <i class="bi bi-robot"></i>
+                                </div>
+                                <div class="battery-robot-name">HANABOT_8</div>
+                            </div>
+                            <div class="battery-level" id="battery-level-hanabot8">0%</div>
+                        </div>
+                        <div class="battery-main">
+                            <div class="battery-progress">
+                                <div class="battery-bar">
+                                    <div class="battery-fill" id="battery-fill-hanabot8" style="width: 0%"></div>
+                                </div>
+                                <div class="battery-status-indicator" id="battery-status-indicator-hanabot8">IDLE</div>
+                            </div>
+                            <div class="battery-details">
+                                <div class="battery-detail">
+                                    <span class="detail-label">Status</span>
+                                    <span class="detail-value" id="battery-status-hanabot8">Unknown</span>
+                                </div>
+                                <div class="battery-detail">
+                                    <span class="detail-label">Charging</span>
+                                    <span class="detail-value" id="battery-charging-hanabot8">No</span>
+                                </div>
+                                <div class="battery-detail">
+                                    <span class="detail-label">Est. Time</span>
+                                    <span class="detail-value" id="battery-time-hanabot8">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="battery-card" data-robot="HANABOT_9">
+                        <div class="battery-header">
+                            <div class="battery-robot-info">
+                                <div class="battery-robot-icon">
+                                    <i class="bi bi-robot"></i>
+                                </div>
+                                <div class="battery-robot-name">HANABOT_9</div>
+                            </div>
+                            <div class="battery-level" id="battery-level-hanabot9">0%</div>
+                        </div>
+                        <div class="battery-main">
+                            <div class="battery-progress">
+                                <div class="battery-bar">
+                                    <div class="battery-fill" id="battery-fill-hanabot9" style="width: 0%"></div>
+                                </div>
+                                <div class="battery-status-indicator" id="battery-status-indicator-hanabot9">IDLE</div>
+                            </div>
+                            <div class="battery-details">
+                                <div class="battery-detail">
+                                    <span class="detail-label">Status</span>
+                                    <span class="detail-value" id="battery-status-hanabot9">Unknown</span>
+                                </div>
+                                <div class="battery-detail">
+                                    <span class="detail-label">Charging</span>
+                                    <span class="detail-value" id="battery-charging-hanabot9">No</span>
+                                </div>
+                                <div class="battery-detail">
+                                    <span class="detail-label">Est. Time</span>
+                                    <span class="detail-value" id="battery-time-hanabot9">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="battery-card" data-robot="HANABOT_3">
+                        <div class="battery-header">
+                            <div class="battery-robot-info">
+                                <div class="battery-robot-icon">
+                                    <i class="bi bi-robot"></i>
+                                </div>
+                                <div class="battery-robot-name">HANABOT_3</div>
+                            </div>
+                            <div class="battery-level" id="battery-level-hanabot3">0%</div>
+                        </div>
+                        <div class="battery-main">
+                            <div class="battery-progress">
+                                <div class="battery-bar">
+                                    <div class="battery-fill" id="battery-fill-hanabot3" style="width: 0%"></div>
+                                </div>
+                                <div class="battery-status-indicator" id="battery-status-indicator-hanabot3">IDLE</div>
+                            </div>
+                            <div class="battery-details">
+                                <div class="battery-detail">
+                                    <span class="detail-label">Status</span>
+                                    <span class="detail-value" id="battery-status-hanabot3">Unknown</span>
+                                </div>
+                                <div class="battery-detail">
+                                    <span class="detail-label">Charging</span>
+                                    <span class="detail-value" id="battery-charging-hanabot3">No</span>
+                                </div>
+                                <div class="battery-detail">
+                                    <span class="detail-label">Est. Time</span>
+                                    <span class="detail-value" id="battery-time-hanabot3">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Robot Performance Charts -->
+            <div class="section-header">
+                <h4><i class="bi bi-graph-up"></i> Robot Performance Analysis</h4>
+            </div>
+            <div class="row mb-4">
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <i class="bi bi-trophy"></i>
+                                Robot Performance Score
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="robotPerformanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <i class="bi bi-battery-half"></i>
+                                Battery Level Timeline (24h)
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="batteryTimelineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Individual Robot Cards -->
+            <div class="section-header">
+                <h4><i class="bi bi-robot"></i> Robot Fleet Overview</h4>
+            </div>
+            <div class="row mb-4" id="robot-cards-container">
+                <!-- Robot cards will be populated by JavaScript -->
+            </div>
+
+            <!-- Detailed Robot Information Table -->
+            <div class="robots-section">
+                <div class="d-flex justify-content-between align-items-center table-toggle" onclick="toggleRobotTable()">
+                    <div>
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-ul"></i>
+                            Detailed Robot Information
+                        </h5>
+                        <small class="text-muted">Comprehensive robot status and performance data</small>
+                    </div>
+                    <div>
+                        <i class="bi bi-chevron-down chevron-icon" id="robot-table-chevron"></i>
+                    </div>
+                </div>
+                <div class="table-responsive" id="robot-detailed-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Robot ID</th>
+                                <th>Status</th>
+                                <th>Battery</th>
+                                <th>Current Task</th>
+                                <th>Location</th>
+                                <th>Last Update</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="robot-detailed-table-body">
+                            <tr><td colspan="7" class="text-center">Loading robot data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tasks Section -->
+        <div id="tasks-section" class="section-content">
+            <div class="data-table-container">
+                <div class="table-header">
+                    <div class="table-title">
+                        <i class="bi bi-list-task"></i>
+                        Task Management
+                    </div>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Task ID</th>
+                            <th>Status</th>
+                            <th>Requester</th>
+                            <th>Item</th>
+                            <th>Robot</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasks-table-body">
+                        <tr><td colspan="6" class="text-center">Loading tasks...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Users Section -->
+        <div id="users-section" class="section-content">
+            <div class="data-table-container">
+                <div class="table-header">
+                    <div class="table-title">
+                        <i class="bi bi-people"></i>
+                        Registered Users
+                    </div>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Name</th>
+                            <th>Gender</th>
+                            <th>Birth Date</th>
+                            <th>Login ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <tr><td colspan="6" class="text-center">Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Items Section -->
+        <div id="items-section" class="section-content">
+            <div class="data-table-container">
+                <div class="table-header">
+                    <div class="table-title">
+                        <i class="bi bi-box-seam"></i>
+                        Available Items
+                    </div>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Item ID</th>
+                            <th>Type</th>
+                            <th>Quantity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="items-table-body">
+                        <tr><td colspan="4" class="text-center">Loading items...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Camera Section -->
+        <div id="camera-section" class="section-content">
+            <!-- Camera Control Panel -->
+            <div class="control-panel" style="margin-bottom: 20px;">
+                <div class="control-panel-header">
+                    <div class="chart-title">
+                        <i class="bi bi-camera-video"></i>
+                        Multi-Camera Control Center
+                    </div>
+                </div>
+                <div class="control-actions">
+                    <button class="action-button success" onclick="startAllCameras()">
+                        <i class="bi bi-play-fill"></i>
+                        Start All
+                    </button>
+                    <button class="action-button danger" onclick="stopAllCameras()">
+                        <i class="bi bi-stop-fill"></i>
+                        Stop All
+                    </button>
+                    <button class="action-button" onclick="switchLayout('single')">
+                        <i class="bi bi-square"></i>
+                        Single View
+                    </button>
+                    <button class="action-button active" onclick="switchLayout('grid')">
+                        <i class="bi bi-grid-3x3"></i>
+                        Grid View
+                    </button>
+                    <button class="action-button" onclick="toggleAutoSwitch()">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Auto Switch
+                    </button>
+                    <button class="action-button" onclick="takeAllSnapshots()">
+                        <i class="bi bi-camera"></i>
+                        Snapshot All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Camera Grid Layout -->
+            <div id="camera-grid-layout">
+                <!-- Main Global Camera Row -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <!-- Global Camera (Large) -->
+                        <div class="chart-container camera-grid-item" data-camera="global">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <i class="bi bi-globe"></i>
+                                    Global Camera
+                                    <span class="badge bg-secondary ms-2" style="font-size: 9px;">Main View - 1920x1080</span>
+                                </div>
+                                <div class="chart-controls">
+                                    <button class="chart-control" onclick="startSpecificCamera('global')">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                    <button class="chart-control" onclick="stopSpecificCamera('global')">
+                                        <i class="bi bi-stop-fill"></i>
+                                    </button>
+                                    <button class="chart-control" onclick="focusCamera('global')">
+                                        <i class="bi bi-arrows-fullscreen"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper" style="height: 360px;">
+                                <div class="camera-stream-container global-camera" id="camera-container-global">
+                                    <div class="camera-placeholder" id="camera-placeholder-global">
+                                        <i class="bi bi-camera-video"></i>
+                                        <div>Global Camera</div>
+                                        <div class="small">1920x1080 - Port: 5000</div>
+                                    </div>
+                                    <img class="camera-stream" id="camera-stream-global" style="display: none;" />
+                                    <div class="camera-overlay" id="camera-overlay-global" style="display: none;">
+                                        <i class="bi bi-record-circle"></i> LIVE
+                                    </div>
+                                    <div class="camera-status" id="camera-status-global">
+                                        <span class="status-dot offline"></span> Offline
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <!-- Robot Cameras Status Panel -->
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <i class="bi bi-robot"></i>
+                                    Robot Cameras Status
+                                </div>
+                            </div>
+                            <div class="chart-wrapper" style="height: 360px; padding: 15px;">
+                                <div class="robot-camera-info">
+                                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">
+                                        <i class="bi bi-info-circle"></i> Individual controls available on each camera
+                                    </div>
+                                    <div class="robot-status-list">
+                                        <div class="robot-status-item" id="robot-status-hanabot_3">
+                                            <span class="status-dot offline"></span>
+                                            <div class="robot-info">
+                                                <div style="font-weight: 600;">HanaBot 3</div>
+                                                <div style="font-size: 11px; color: var(--text-muted);">Station A - Port: 5003</div>
+                                            </div>
+                                        </div>
+                                        <div class="robot-status-item" id="robot-status-hanabot_8">
+                                            <span class="status-dot offline"></span>
+                                            <div class="robot-info">
+                                                <div style="font-weight: 600;">HanaBot 8</div>
+                                                <div style="font-size: 11px; color: var(--text-muted);">Station B - Port: 5008</div>
+                                            </div>
+                                        </div>
+                                        <div class="robot-status-item" id="robot-status-hanabot_9">
+                                            <span class="status-dot offline"></span>
+                                            <div class="robot-info">
+                                                <div style="font-weight: 600;">HanaBot 9</div>
+                                                <div style="font-size: 11px; color: var(--text-muted);">Station C - Port: 5009</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 30px; padding: 15px; background: var(--accent-bg); border-radius: 6px;">
+                                        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">QUICK ACTIONS</div>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button class="btn btn-sm btn-outline-success" onclick="startRobotCameras()" style="flex: 1; font-size: 10px;">
+                                                <i class="bi bi-play-fill"></i> Start All
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="stopRobotCameras()" style="flex: 1; font-size: 10px;">
+                                                <i class="bi bi-stop-fill"></i> Stop All
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Robot Cameras Row -->
+                <div class="row" style="margin-top: 15px;">
+                    <div class="col-lg-4">
+                        <!-- HanaBot 3 Camera -->
+                        <div class="chart-container camera-grid-item robot-camera" data-camera="hanabot_3">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <i class="bi bi-robot"></i>
+                                    HanaBot 3
+                                    <span class="badge bg-info ms-2" style="font-size: 9px;">Station A</span>
+                                </div>
+                                <div class="chart-controls">
+                                    <button class="chart-control" onclick="startSpecificCamera('hanabot_3')">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                    <button class="chart-control" onclick="stopSpecificCamera('hanabot_3')">
+                                        <i class="bi bi-stop-fill"></i>
+                                    </button>
+                                    <button class="chart-control" onclick="focusCamera('hanabot_3')">
+                                        <i class="bi bi-arrows-fullscreen"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper small" style="height: 240px;">
+                                <div class="camera-stream-container robot-camera-container" id="camera-container-hanabot_3">
+                                    <div class="camera-placeholder" id="camera-placeholder-hanabot_3">
+                                        <i class="bi bi-robot"></i>
+                                        <div>HanaBot 3</div>
+                                        <div class="small">640x480 - Port: 5003</div>
+                                    </div>
+                                    <img class="camera-stream" id="camera-stream-hanabot_3" style="display: none;" />
+                                    <div class="camera-overlay" id="camera-overlay-hanabot_3" style="display: none;">
+                                        <i class="bi bi-record-circle"></i> LIVE
+                                    </div>
+                                    <div class="camera-status" id="camera-status-hanabot_3">
+                                        <span class="status-dot offline"></span> Offline
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <!-- HanaBot 8 Camera -->
+                        <div class="chart-container camera-grid-item robot-camera" data-camera="hanabot_8">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <i class="bi bi-robot"></i>
+                                    HanaBot 8
+                                    <span class="badge bg-success ms-2" style="font-size: 9px;">Station B</span>
+                                </div>
+                                <div class="chart-controls">
+                                    <button class="chart-control" onclick="startSpecificCamera('hanabot_8')">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                    <button class="chart-control" onclick="stopSpecificCamera('hanabot_8')">
+                                        <i class="bi bi-stop-fill"></i>
+                                    </button>
+                                    <button class="chart-control" onclick="focusCamera('hanabot_8')">
+                                        <i class="bi bi-arrows-fullscreen"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper small" style="height: 240px;">
+                                <div class="camera-stream-container robot-camera-container" id="camera-container-hanabot_8">
+                                    <div class="camera-placeholder" id="camera-placeholder-hanabot_8">
+                                        <i class="bi bi-robot"></i>
+                                        <div>HanaBot 8</div>
+                                        <div class="small">640x480 - Port: 5008</div>
+                                    </div>
+                                    <img class="camera-stream" id="camera-stream-hanabot_8" style="display: none;" />
+                                    <div class="camera-overlay" id="camera-overlay-hanabot_8" style="display: none;">
+                                        <i class="bi bi-record-circle"></i> LIVE
+                                    </div>
+                                    <div class="camera-status" id="camera-status-hanabot_8">
+                                        <span class="status-dot offline"></span> Offline
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <!-- HanaBot 9 Camera -->
+                        <div class="chart-container camera-grid-item robot-camera" data-camera="hanabot_9">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <i class="bi bi-robot"></i>
+                                    HanaBot 9
+                                    <span class="badge bg-warning ms-2" style="font-size: 9px;">Station C</span>
+                                </div>
+                                <div class="chart-controls">
+                                    <button class="chart-control" onclick="startSpecificCamera('hanabot_9')">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                    <button class="chart-control" onclick="stopSpecificCamera('hanabot_9')">
+                                        <i class="bi bi-stop-fill"></i>
+                                    </button>
+                                    <button class="chart-control" onclick="focusCamera('hanabot_9')">
+                                        <i class="bi bi-arrows-fullscreen"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper small" style="height: 240px;">
+                                <div class="camera-stream-container robot-camera-container" id="camera-container-hanabot_9">
+                                    <div class="camera-placeholder" id="camera-placeholder-hanabot_9">
+                                        <i class="bi bi-robot"></i>
+                                        <div>HanaBot 9</div>
+                                        <div class="small">640x480 - Port: 5009</div>
+                                    </div>
+                                    <img class="camera-stream" id="camera-stream-hanabot_9" style="display: none;" />
+                                    <div class="camera-overlay" id="camera-overlay-hanabot_9" style="display: none;">
+                                        <i class="bi bi-record-circle"></i> LIVE
+                                    </div>
+                                    <div class="camera-status" id="camera-status-hanabot_9">
+                                        <span class="status-dot offline"></span> Offline
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Single Camera View (Initially Hidden) -->
+            <div id="camera-single-layout" style="display: none;">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i class="bi bi-camera-video"></i>
+                            <span id="single-camera-title">Camera View</span>
+                        </div>
+                        <div class="chart-controls">
+                            <button class="chart-control" onclick="switchLayout('grid')">
+                                <i class="bi bi-grid-3x3"></i> Back to Grid
+                            </button>
+                            <button class="chart-control" onclick="takeSnapshot()">
+                                <i class="bi bi-camera"></i> Snapshot
+                            </button>
+                            <button class="chart-control" onclick="toggleFullscreen()">
+                                <i class="bi bi-arrows-fullscreen"></i> Fullscreen
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper" style="height: 600px;">
+                        <div id="single-camera-container" class="camera-stream-container">
+                            <div class="camera-placeholder" id="single-camera-placeholder">
+                                <i class="bi bi-camera-video" style="font-size: 64px;"></i>
+                                <div style="font-size: 18px; margin: 15px 0;">Select a camera to view</div>
+                            </div>
+                            <img class="camera-stream" id="single-camera-stream" style="display: none;" />
+                            <div class="camera-overlay" id="single-camera-overlay" style="display: none;">
+                                <i class="bi bi-record-circle"></i> LIVE
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Camera Status Panel -->
+            <div class="row" style="margin-top: 20px;">
+                <div class="col-12">
+                    <div class="data-table-container">
+                        <div class="table-header">
+                            <div class="table-title">
+                                <i class="bi bi-list-ul"></i>
+                                Camera Status Overview
+                            </div>
+                        </div>
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Camera</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Port</th>
+                                    <th>FPS</th>
+                                    <th>Resolution</th>
+                                    <th>Last Update</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="camera-status-table">
+                                <tr><td colspan="8" class="text-center">Loading camera status...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/admin_dashboard.js"></script>
+</body>
+</html>

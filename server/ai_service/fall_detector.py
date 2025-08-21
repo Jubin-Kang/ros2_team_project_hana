@@ -1,4 +1,3 @@
-
 import cv2
 import numpy as np
 import socket
@@ -60,7 +59,11 @@ class YoloReceiverNode(Node):
         # --- Model Initialization ---
         self.get_logger().info("Loading YOLOv8 model...")
         self.yolo_model = YOLO('yolo_model/yolov8s.pt')
+        self.yolo_model.model.names[0] = 'Fall_Detected' # Change person label
         self.get_logger().info("YOLOv8 model loaded successfully.")
+
+        # --- Detection Counter ---
+        self.person_detected_count = 0
 
         # --- Main processing loop via timer ---
         self.create_timer(0.001, self.receive_and_process) # Process as fast as possible
@@ -94,11 +97,19 @@ class YoloReceiverNode(Node):
                         detection_status = 2 # 2: Person detected inside polygon
                         break
             
-            # Publish string message if status is 1
+            # Update consecutive detection counter
             if detection_status == 1:
+                self.person_detected_count += 1
+            else:
+                self.person_detected_count = 0
+
+            # Publish string message if detected for >= 5 frames
+            if self.person_detected_count >= 5:
                 string_msg = String()
                 string_msg.data = "fall_detected"
                 self.publisher_.publish(string_msg)
+                if self.person_detected_count == 5: # Log only on the 5th frame to avoid spam
+                    self.get_logger().info("Fall detected for 5 consecutive frames. Publishing topic.")
 
             # Optional: Display receiver-side view for debugging
             yolo_annotated_frame = yolo_results[0].plot()

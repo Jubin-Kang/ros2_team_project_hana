@@ -94,35 +94,31 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 
 ## Implements
 ## SLAM & Navigation
-![Image](https://github.com/user-attachments/assets/36412e04-fca1-464b-9f82-f382e763e5d1)
+
 <br >
 
 ## YOLOv8 & EasyOCR
-![Image](https://github.com/user-attachments/assets/b496ef4b-9291-4eb9-99a8-be7b11df326b)
+
 <br >
 
 ## GUI 
 ### Reservation GUI
-![Image](https://github.com/user-attachments/assets/51091fdb-7486-4647-b12c-cab415a19f2e)
-![Image](https://github.com/user-attachments/assets/753ddd0a-bbd9-484f-9e75-5d76d7b34a70)
+
 <br >
 
 ### Client GUI
-![Image](https://github.com/user-attachments/assets/0eab758f-20e4-46a8-a0b6-c2d105964daa)
-![Image](https://github.com/user-attachments/assets/7479aaab-7824-43bf-93d6-ff687282893d)
-![Image](https://github.com/user-attachments/assets/9b3d5040-9d15-46fb-9d04-99bf5a5df8f0)
-![Image](https://github.com/user-attachments/assets/d78210fe-3360-4c55-9f4c-0d585e5f3c1a)
+
 <br >
 
 ### Admin GUI
-![Image](https://github.com/user-attachments/assets/39e0674e-6301-4e38-ab3a-57b451aefea3)
+
 <br >
 
 ## <a href="https://youtu.be/28lv0X8Z07Q">Video Demo</a>
-![Image](https://github.com/user-attachments/assets/63945c7f-ece9-443b-8805-f49219d1f175)
+
 <br >
 
 ## Project Schedule
 Project Period: 2025.04.09~2025.05.27
-![Image](https://github.com/user-attachments/assets/1665d7f7-276e-4f50-85d9-682a49d5ab33)
+
 <br >

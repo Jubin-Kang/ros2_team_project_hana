@@ -135,8 +135,8 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 <br >
 
 ### Admin GUI
-![Image]()
-
+![Image](docs/gui_admin_0.png)
+![Image](docs/gui_admin_1.png)
 <br >
 
 ## <a href="https://youtu.be/ZZ3zroNBlqo?si=c7IFToJwzir5f4Py">Video Demo</a>

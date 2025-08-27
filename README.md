@@ -11,7 +11,7 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
   <p align="center">
     <a href="https://www.canva.com/design/DAGwfz6HCGg/3tjJYCF4NwBcRcOnqCbbjg/edit">Presentation</a>
     <a> || </a>
-    <a href="https://youtu.be/28lv0X8Z07Q">Video Demo</a>
+    <a href="https://youtu.be/ZZ3zroNBlqo?si=c7IFToJwzir5f4Py">Video Demo</a>
   </p>
 </p>
 <hr>
@@ -90,35 +90,53 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 
 <br >
 
-
-
 ## Implements
-## SLAM & Navigation
+## Visual Perception
+### Fall Detection
+![Image]()
 
 <br >
 
-## YOLOv8 & EasyOCR
+### ArUco Marker Detection
+![Image]()
 
 <br >
 
-## GUI 
-### Reservation GUI
+## Mobile Robots
+### Autonomous Driving Architecture
+![Image]()
 
 <br >
 
+## Multi-Robot Control System
+### ???
+![Image]()
+
+<br >
+
+## Manipulator
+### ???
+![Image]()
+
+<br >
+
+## GUI
 ### Client GUI
+![Image]()
 
 <br >
 
 ### Admin GUI
+![Image]()
 
 <br >
 
-## <a href="https://youtu.be/28lv0X8Z07Q">Video Demo</a>
+## <a href="https://youtu.be/ZZ3zroNBlqo?si=c7IFToJwzir5f4Py">Video Demo</a>
 
 <br >
 
 ## Project Schedule
-Project Period: 2025.04.09~2025.05.27
+Project Period: 2025.06.23~2025.08.22
+![Image](https://github.com/user-attachments/assets/64a657e1-f6d0-4e71-a621-926d4976c5ed)
 
 <br >

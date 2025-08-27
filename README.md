@@ -104,10 +104,15 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 
 ## Mobile Robots
 ### Autonomous Driving Architecture
-![Image]()
-### Aruco Marker Odometry with Sesnsor Fusion
+![Image](docs/mobile_robot_0_architecture.png) 
+### Aruco Marker Odometry with Sensor Fusion
+![Image](docs/mobile_robot_1_aruco_marker_odom.png)
+![Image](docs/mobile_robot_2_aruco_marker_ekf.png)
+![Image](docs/mobile_robot_3_aruco_marker_odom_result.png)
 
-### Mobile Robot Contorl
+### Mobile Robot Control
+![Image](docs/mobile_robot_4_precise_control.png)
+![Image](docs/mobile_robot_5_safety_control.png)
 
 <br >
 

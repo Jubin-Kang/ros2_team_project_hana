@@ -152,8 +152,8 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 <br >
 
 ### Admin GUI
-![Image](docs/gui_admin_0.png)
-![Image](docs/gui_admin_1.png)
+![Image](docs/admin_gui_0.png)
+![Image](docs/admin_gui_1.png)
 <br >
 
 ## AI 기반 요양 케어 자동화 시스템 <a href="https://youtu.be/ZZ3zroNBlqo?si=c7IFToJwzir5f4Py">Video Demo</a>

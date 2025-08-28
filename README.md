@@ -91,11 +91,16 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 <br >
 
 ## Implements
+### Scenario
+![Image](https://github.com/user-attachments/assets/34e3c718-48e7-46f7-8f9f-0aa2894e73d4)
+![Image](https://github.com/user-attachments/assets/36888708-8558-4cf7-ab7f-1323dec34a75)
+
 ## Visual Perception
 ### Fall Detection <a href="https://youtu.be/RGaHGk8g8CM?si=JeyQEyDHIPCZi-QU">Video Demo</a>
 ![Image](docs/global_camera_0_fall_detection.png)
 
 <br >
+
 
 ### ArUco Marker Detection
 ![Image](docs/global_camera_1_aruco_detection.png)
@@ -124,11 +129,11 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 <br >
 
 ## Manipulator
-### <a href="https://youtube.com/shorts/jgOKWCgC6g4?si=p_9TIRYr5YMuHrkH">TCP vs. UDP</a>
+### TCP vs. UDP <a href="https://youtube.com/shorts/jgOKWCgC6g4?si=p_9TIRYr5YMuHrkH">Video Demo</a>
 ![Image](https://github.com/user-attachments/assets/e2ac3703-e394-4f92-ad52-86c038c69b65)
 ![Image](https://github.com/user-attachments/assets/1190fe8f-aede-45a5-b1e8-a516d5a99e50)
 
-### <a href="https://youtube.com/shorts/nGim0zZXDp8?si=m3Fh_BKGykL91u_g">물품 탐색 및 분류 후 Pick & Place</a>
+### 물품 탐색 및 분류 후 Pick & Place <a href="https://youtube.com/shorts/nGim0zZXDp8?si=m3Fh_BKGykL91u_g">Video Demo</a>
 ![Image](https://github.com/user-attachments/assets/a4ed023e-5298-4649-aafe-ac842888e21a)
 
 
@@ -146,7 +151,7 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 ![Image](docs/gui_admin_1.png)
 <br >
 
-## <a href="https://youtu.be/ZZ3zroNBlqo?si=c7IFToJwzir5f4Py">Video Demo</a>
+## AI 기반 요양 케어 자동화 시스템 <a href="https://youtu.be/ZZ3zroNBlqo?si=c7IFToJwzir5f4Py">Video Demo</a>
 
 <br >
 

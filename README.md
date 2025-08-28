@@ -93,13 +93,14 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 ## Implements
 ## Visual Perception
 ### Fall Detection
-![Image]()
+![Image](docs/global_camera_0_fall_detection.png)
 
 <br >
 
 ### ArUco Marker Detection
-![Image]()
-
+![Image](docs/global_camera_1_aruco_detection.png)
+![Image](docs/global_camera_2_aruco_result.png)
+![Image](docs/global_camera_3_aruco_distribution_result.png)
 <br >
 
 ## Mobile Robots

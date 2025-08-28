@@ -92,7 +92,7 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 
 ## Implements
 ## Visual Perception
-### Fall Detection
+### Fall Detection <a href="https://youtu.be/RGaHGk8g8CM?si=JeyQEyDHIPCZi-QU">Video Demo</a>
 ![Image](docs/global_camera_0_fall_detection.png)
 
 <br >
@@ -119,15 +119,21 @@ ROS2와 AI를 활용한 자율주행 로봇개발자 부트캠프 1팀 저장소
 
 ## Multi-Robot Control System
 ### ???
-![Image]()
+
 
 <br >
 
 ## Manipulator
-### ???
-![Image]()
+### <a href="https://youtube.com/shorts/jgOKWCgC6g4?si=p_9TIRYr5YMuHrkH">TCP vs. UDP</a>
+![Image](https://github.com/user-attachments/assets/e2ac3703-e394-4f92-ad52-86c038c69b65)
+![Image](https://github.com/user-attachments/assets/1190fe8f-aede-45a5-b1e8-a516d5a99e50)
+
+### <a href="https://youtube.com/shorts/nGim0zZXDp8?si=m3Fh_BKGykL91u_g">물품 탐색 및 분류 후 Pick & Place</a>
+![Image](https://github.com/user-attachments/assets/a4ed023e-5298-4649-aafe-ac842888e21a)
+
 
 <br >
+
 
 ## GUI
 ### Client GUI
